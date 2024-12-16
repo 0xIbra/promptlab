@@ -3,6 +3,8 @@ require('@electron/remote/main').initialize();
 const path = require('path');
 const fs = require('fs').promises;
 const { encode } = require('gpt-tokenizer');
+const Store = require('electron-store');
+const store = new Store();
 
 function createWindow() {
     const win = new BrowserWindow({
@@ -229,4 +231,32 @@ app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
         createWindow();
     }
+});
+
+ipcMain.handle('load-global-settings', async () => {
+    return store.get('globalSettings', {});
+});
+
+ipcMain.handle('save-global-settings', async (event, settings) => {
+    store.set('globalSettings', settings);
+});
+
+ipcMain.handle('load-repo-data', async (event, repoPath) => {
+    const repoData = store.get(`repos.${repoPath}`, {});
+    return repoData;
+});
+
+ipcMain.handle('save-repo-data', async (event, repoPath, data) => {
+    store.set(`repos.${repoPath}`, data);
+});
+
+ipcMain.handle('update-recent-repos', async (event, repoPath) => {
+    const recentRepos = store.get('recentRepos', []);
+    const updatedRepos = [
+        repoPath,
+        ...recentRepos.filter(repo => repo !== repoPath)
+    ].slice(0, 10); // Keep only last 10 repos
+
+    store.set('recentRepos', updatedRepos);
+    return updatedRepos;
 });

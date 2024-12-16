@@ -26,41 +26,33 @@ function App() {
 
     useEffect(() => {
         const loadLastSession = async () => {
-            const settings = await cache.loadGlobalSettings();
-            if (settings.lastOpenedRepo) {
-                const repoData = await cache.loadRepoData(settings.lastOpenedRepo);
-                setCurrentPath(settings.lastOpenedRepo);
-                setFilters(repoData.filters !== undefined ? repoData.filters : []);
-                setInstructions(repoData.instructions || '');
+            try {
+                const settings = await cache.loadGlobalSettings();
+                if (settings.lastOpenedRepo) {
+                    const repoData = await cache.loadRepoData(settings.lastOpenedRepo);
+                    setCurrentPath(settings.lastOpenedRepo);
+                    setFilters(repoData.filters || []);
+                    setInstructions(repoData.instructions || '');
 
-                // Load files and apply filters in the backend
-                const cleanFilters = (repoData.filters || []).filter(f => f && !f.startsWith('#'));
-                const files = await ipcRenderer.invoke('read-directory', settings.lastOpenedRepo, cleanFilters);
+                    // Load files and apply filters in the backend
+                    const cleanFilters = (repoData.filters || []).filter(f => f && !f.startsWith('#'));
+                    const files = await ipcRenderer.invoke('read-directory', settings.lastOpenedRepo, cleanFilters);
 
-                // Initialize all files
-                const initialFiles = files.map(file => ({
-                    path: file,
-                    selected: (repoData.selectedFiles || []).includes(file),
-                    tokens: 0
-                }));
+                    // Initialize all files with their cached selection state
+                    const fileObjects = files.map(file => ({
+                        ...file,
+                        selected: (repoData.selectedFiles || []).includes(file.path)
+                    }));
 
-                setSelectedFiles(initialFiles);
-
-                // Count tokens only for selected files
-                const selectedFiles = initialFiles.filter(f => f.selected);
-                const tokenPromises = selectedFiles.map(async (file) => ({
-                    path: file.path,
-                    tokens: await countFileTokens(file.path, fs, path, settings.lastOpenedRepo)
-                }));
-
-                const tokenResults = await Promise.all(tokenPromises);
-
-                setSelectedFiles(prev =>
-                    prev.map(f => ({
-                        ...f,
-                        tokens: tokenResults.find(r => r.path === f.path)?.tokens || f.tokens
-                    }))
-                );
+                    setSelectedFiles(fileObjects);
+                }
+            } catch (error) {
+                console.error('Error loading last session:', error);
+                // Reset state on error
+                setCurrentPath('');
+                setFilters([]);
+                setSelectedFiles([]);
+                setInstructions('');
             }
         };
 
@@ -70,20 +62,26 @@ function App() {
     useEffect(() => {
         const saveSession = async () => {
             if (currentPath) {
-                await cache.saveRepoData(currentPath, {
-                    filters,
-                    lastOpened: new Date().toISOString(),
-                    selectedFiles: selectedFiles
-                        .filter(f => f.selected)
-                        .map(f => f.path),
-                    instructions
-                });
+                try {
+                    await cache.saveRepoData(currentPath, {
+                        filters,
+                        lastOpened: new Date().toISOString(),
+                        selectedFiles: selectedFiles
+                            .filter(f => f.selected)
+                            .map(f => f.path),
+                        instructions
+                    });
 
-                await cache.updateRecentRepos(currentPath);
+                    await cache.updateRecentRepos(currentPath);
+                } catch (error) {
+                    console.error('Error saving session:', error);
+                }
             }
         };
 
-        saveSession();
+        // Debounce the save operation to avoid too frequent writes
+        const timeoutId = setTimeout(saveSession, 500);
+        return () => clearTimeout(timeoutId);
     }, [currentPath, filters, selectedFiles, instructions]);
 
     const handleFolderSelect = async () => {

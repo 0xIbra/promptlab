@@ -45,7 +45,9 @@ function FileTree({ files, currentPath, onFileSelect, onFileView }) {
             const folderFiles = getAllFilesInFolder(path);
             const shouldSelect = !isFullySelected(node);
             folderFiles.forEach(file => {
-                onFileSelect({ path: file.path }, shouldSelect);
+                if (file.isText) {
+                    onFileSelect({ path: file.path }, shouldSelect);
+                }
             });
         } else {
             onFileSelect({ path });
@@ -53,15 +55,18 @@ function FileTree({ files, currentPath, onFileSelect, onFileView }) {
     };
 
     const isPartiallySelected = (node) => {
-        if (node.isFile || Object.keys(node.children).length === 0) {
+        if (node.isFile) {
             return false;
         }
 
-        const childStates = Object.values(node.children).map(child =>
-            isFullySelected(child)
+        const allFiles = Object.values(node.children).flatMap(child =>
+            child.isFile ? [child] : Object.values(child.children)
         );
 
-        return childStates.some(Boolean) && !childStates.every(Boolean);
+        if (allFiles.length === 0) return false;
+
+        const selectedCount = allFiles.filter(file => file.selected).length;
+        return selectedCount > 0 && selectedCount < allFiles.length;
     };
 
     const isFullySelected = (node) => {
@@ -69,13 +74,13 @@ function FileTree({ files, currentPath, onFileSelect, onFileView }) {
             return node.selected;
         }
 
-        if (Object.keys(node.children).length === 0) {
-            return false;
-        }
-
-        return Object.values(node.children).every(child =>
-            isFullySelected(child)
+        const allFiles = Object.values(node.children).flatMap(child =>
+            child.isFile ? [child] : Object.values(child.children)
         );
+
+        if (allFiles.length === 0) return false;
+
+        return allFiles.every(file => file.selected);
     };
 
     const buildTree = (paths, files) => {
