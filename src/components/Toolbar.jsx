@@ -21,10 +21,12 @@ function Toolbar({ onSelectFolder, onOpenFilters, onSelectAll, onUnselectAll }) 
 
                 <button
                     onClick={onOpenFilters}
-                    className="p-1.5 hover:bg-gray-800/70 rounded-md transition-all duration-200 text-gray-400 hover:text-gray-200"
-                    title="Filters"
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 hover:bg-gray-800/70 rounded-md
+                        transition-all duration-200 text-gray-400 hover:text-gray-200"
+                    title="Manage Filters"
                 >
                     <FunnelIcon className="w-5 h-5" />
+                    <span className="text-sm">Filters</span>
                 </button>
             </div>
 
