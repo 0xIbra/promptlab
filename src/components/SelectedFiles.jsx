@@ -2,15 +2,16 @@ import React, { useMemo } from 'react';
 import { DocumentIcon, FolderIcon } from '@heroicons/react/24/outline';
 
 function SelectedFiles({ files }) {
-    const totalTokens = files.reduce((sum, file) => sum + (file.tokens || 0), 0);
+    // Only count tokens from text files
+    const totalTokens = files.reduce((sum, file) => sum + (file.isText ? (file.tokens || 0) : 0), 0);
 
     // Group and sort files
     const { folderGroups, rootFiles } = useMemo(() => {
         const groups = {};
         const root = [];
 
-        // First separate files into folders and root
-        files.forEach(file => {
+        // First separate files into folders and root, only include text files
+        files.filter(file => file.isText).forEach(file => {
             const parts = file.path.split('/');
             if (parts.length > 1) {
                 const parentDir = parts[0];
@@ -45,7 +46,7 @@ function SelectedFiles({ files }) {
     return (
         <div className="p-4 animate-fade-in">
             <div className="flex justify-between items-center mb-4">
-                <div className="text-sm font-medium text-gray-300">Selected Files</div>
+                <div className="text-sm font-medium text-gray-300">Selected Text Files</div>
                 <div className="px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 text-sm">
                     ~{totalTokens.toLocaleString()} Tokens
                 </div>

@@ -2,6 +2,7 @@ const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 require('@electron/remote/main').initialize();
 const path = require('path');
 const fs = require('fs').promises;
+const { encode } = require('gpt-tokenizer');
 
 function createWindow() {
     const win = new BrowserWindow({
@@ -87,6 +88,7 @@ const DEFAULT_IGNORE_PATTERNS = [
     '.git',
     '.env',
     '.env.*',
+    '.serverless',
 
     // Python
     '# Python',
@@ -104,6 +106,52 @@ const DEFAULT_IGNORE_PATTERNS = [
     '.DS_Store',
     'Thumbs.db'
 ];
+
+async function isTextFile(filePath) {
+    try {
+        // Read the first 8KB of the file
+        const fd = await fs.open(filePath, 'r');
+        const buffer = Buffer.alloc(8192); // 8KB buffer
+        const { bytesRead } = await fd.read(buffer, 0, 8192, 0);
+        await fd.close();
+
+        // If file is empty, consider it text
+        if (bytesRead === 0) return true;
+
+        // Check for NULL bytes in the content
+        // Files with NULL bytes are likely binary
+        for (let i = 0; i < bytesRead; i++) {
+            if (buffer[i] === 0) return false;
+        }
+
+        // Try to decode as UTF-8
+        try {
+            buffer.slice(0, bytesRead).toString('utf8');
+            return true;
+        } catch (e) {
+            return false;
+        }
+    } catch (error) {
+        console.error(`Error checking if ${filePath} is text:`, error);
+        return false;
+    }
+}
+
+async function countTokens(filePath) {
+    try {
+        // First check if it's a text file
+        if (!await isTextFile(filePath)) {
+            console.log(`Skipping token count for non-text file: ${filePath}`);
+            return 0;
+        }
+
+        const content = await fs.readFile(filePath, 'utf-8');
+        return encode(content).length;
+    } catch (error) {
+        console.error(`Error counting tokens for ${filePath}:`, error);
+        return 0;
+    }
+}
 
 ipcMain.handle('read-directory', async (event, folderPath, filters = []) => {
     // Use default patterns if no filters provided
@@ -137,7 +185,13 @@ ipcMain.handle('read-directory', async (event, folderPath, filters = []) => {
                     if (!isFileIgnoredWithFilters(relativePath, activeFilters)) {
                         try {
                             await fs.access(filePath, fs.constants.R_OK);
-                            paths.push(relativePath);
+                            // Count tokens for each file that passes the filters
+                            const tokens = await countTokens(filePath);
+                            paths.push({
+                                path: relativePath,
+                                tokens,
+                                isText: tokens > 0 // If tokens were counted, it's a text file
+                            });
                         } catch (accessError) {
                             if (accessError.code === 'EACCES' || accessError.code === 'ENOENT') {
                                 continue;

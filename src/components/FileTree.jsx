@@ -89,7 +89,8 @@ function FileTree({ files, currentPath, onFileSelect, onFileView }) {
                     current[part] = {
                         isFile: i === parts.length - 1,
                         children: {},
-                        selected: files.find(f => f.path === pathSoFar)?.selected || false
+                        selected: files.find(f => f.path === pathSoFar)?.selected || false,
+                        tokens: files.find(f => f.path === pathSoFar)?.tokens || 0
                     };
                 }
                 current = current[part].children;
@@ -119,6 +120,7 @@ function FileTree({ files, currentPath, onFileSelect, onFileView }) {
                 : Boolean(fileEntry?.selected);
 
             const isPartial = isFolder && isPartiallySelected(data);
+            const isTextFile = fileEntry?.isText;
 
             return (
                 <div key={fullPath} style={{ paddingLeft: `${level * 20}px` }}>
@@ -126,7 +128,8 @@ function FileTree({ files, currentPath, onFileSelect, onFileView }) {
                         className={`flex items-center gap-2 py-2 px-3 rounded-lg
                             transition-all duration-200 group
                             ${isSelected ? 'bg-blue-500/20 text-blue-100' : 'hover:bg-gray-800/50'}
-                            ${isFolder ? 'hover:bg-gray-800/30' : ''}`}
+                            ${isFolder ? 'hover:bg-gray-800/30' : ''}
+                            ${!isFolder && !isTextFile ? 'opacity-50' : ''}`}
                     >
                         <div className="flex items-center gap-3">
                             <div
@@ -139,7 +142,9 @@ function FileTree({ files, currentPath, onFileSelect, onFileView }) {
                                             : 'border-gray-600/50 group-hover:border-blue-500/50'}`}
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    handleSelect(fullPath, data, isFolder);
+                                    if (isFolder || isTextFile) {
+                                        handleSelect(fullPath, data, isFolder);
+                                    }
                                 }}
                             >
                                 {isSelected && (
@@ -154,11 +159,11 @@ function FileTree({ files, currentPath, onFileSelect, onFileView }) {
                         </div>
 
                         <div
-                            className="flex items-center gap-3 flex-1 min-h-[24px]"
+                            className={`flex items-center gap-3 flex-1 min-h-[24px] ${!isFolder && !isTextFile ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                             onClick={() => {
                                 if (isFolder) {
                                     toggleFolder(fullPath);
-                                } else {
+                                } else if (isTextFile) {
                                     onFileView(fullPath);
                                 }
                             }}
@@ -176,6 +181,18 @@ function FileTree({ files, currentPath, onFileSelect, onFileView }) {
                                 <DocumentIcon className="w-5 h-5 text-gray-400" />
                             )}
                             <span className="text-sm text-gray-300">{name}</span>
+                            {!isFolder && (
+                                <>
+                                    {!isTextFile && (
+                                        <span className="text-xs text-gray-500">(binary file)</span>
+                                    )}
+                                    {isTextFile && data.tokens > 0 && (
+                                        <span className="text-xs text-gray-500">
+                                            {data.tokens.toLocaleString()} tokens
+                                        </span>
+                                    )}
+                                </>
+                            )}
                         </div>
                     </div>
                     {isFolder && isExpanded && (

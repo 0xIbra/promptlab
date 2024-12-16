@@ -104,13 +104,12 @@ function App() {
 
                 // Get filtered files from backend
                 const cleanFilters = (repoData.filters || []).filter(f => f && !f.startsWith('#'));
-
                 const files = await ipcRenderer.invoke('read-directory', selectedPath, cleanFilters);
 
+                // Map the files to include selected state
                 const fileObjects = files.map(file => ({
-                    path: file,
-                    selected: (repoData.selectedFiles || []).includes(file),
-                    tokens: 0
+                    ...file,
+                    selected: (repoData.selectedFiles || []).includes(file.path)
                 }));
 
                 setSelectedFiles(fileObjects);
@@ -130,20 +129,6 @@ function App() {
         setSelectedFiles(prev =>
             prev.map(f => {
                 if (f.path === file.path) {
-                    // Only count tokens if being selected and tokens haven't been counted yet
-                    if (newSelected && !f.tokens) {
-                        // Return current file state while tokens are being counted
-                        countFileTokens(f.path, fs, path, currentPath)
-                            .then(tokenCount => {
-                                setSelectedFiles(current =>
-                                    current.map(cf =>
-                                        cf.path === f.path
-                                            ? { ...cf, tokens: tokenCount }
-                                            : cf
-                                    )
-                                );
-                            });
-                    }
                     return { ...f, selected: newSelected };
                 }
                 return f;
@@ -167,9 +152,8 @@ function App() {
                 // Update state
                 setFilters(newFilters); // Keep original filters including comments
                 setSelectedFiles(files.map(file => ({
-                    path: file,
-                    selected: false,
-                    tokens: 0
+                    ...file,
+                    selected: false
                 })));
 
                 // Update cache
