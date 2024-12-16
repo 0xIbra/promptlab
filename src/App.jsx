@@ -19,6 +19,9 @@ function App() {
     const [activeTab, setActiveTab] = useState('tree');
     const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
     const [filters, setFilters] = useState([]);
+    const [activeMainTab, setActiveMainTab] = useState('instructions');
+    const [selectedViewFile, setSelectedViewFile] = useState(null);
+    const [fileContent, setFileContent] = useState('');
 
     useEffect(() => {
         const loadLastSession = async () => {
@@ -161,6 +164,21 @@ function App() {
         );
     };
 
+    const handleFileView = async (filePath) => {
+        if (!currentPath) return;
+
+        try {
+            const fullPath = path.join(currentPath, filePath);
+            const content = await fs.readFile(fullPath, 'utf-8');
+            setFileContent(content);
+            setSelectedViewFile(filePath);
+            setActiveMainTab('fileViewer');
+        } catch (error) {
+            console.error('Error reading file:', error);
+            setFileContent('Error loading file content');
+        }
+    };
+
     const renderFileView = () => {
         if (activeTab === 'tree') {
             return (
@@ -168,11 +186,11 @@ function App() {
                     files={selectedFiles}
                     currentPath={currentPath}
                     onFileSelect={handleFileSelect}
+                    onFileView={handleFileView}
                 />
             );
         }
 
-        // Enhanced list view
         return (
             <div className="p-4 space-y-2 animate-fade-in">
                 <div className="text-sm text-gray-400 px-2 mb-3">All Files</div>
@@ -193,7 +211,10 @@ function App() {
                                         ${file.selected
                                             ? 'bg-blue-500 border-blue-500 shadow-lg shadow-blue-500/30'
                                             : 'border-gray-600/50 group-hover:border-blue-500/50'}`}
-                                    onClick={() => handleFileSelect({ path: file.path })}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleFileSelect({ path: file.path });
+                                    }}
                                 >
                                     {file.selected && (
                                         <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -201,7 +222,10 @@ function App() {
                                         </svg>
                                     )}
                                 </div>
-                                <div className="flex items-center gap-2 min-w-0">
+                                <div
+                                    className="flex items-center gap-2 min-w-0 cursor-pointer hover:text-blue-400"
+                                    onClick={() => handleFileView(file.path)}
+                                >
                                     <DocumentIcon className="w-4 h-4 flex-shrink-0 text-gray-400" />
                                     <span className="text-sm truncate" title={file.path}>
                                         {file.path}
@@ -247,6 +271,10 @@ function App() {
                     <Instructions
                         value={instructions}
                         onChange={setInstructions}
+                        activeTab={activeMainTab}
+                        onTabChange={setActiveMainTab}
+                        selectedFile={selectedViewFile}
+                        fileContent={fileContent}
                     />
                     <div className="flex-1 overflow-y-auto">
                         <SelectedFiles

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FolderIcon, DocumentIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 
-function FileTree({ files, currentPath, onFileSelect }) {
+function FileTree({ files, currentPath, onFileSelect, onFileView }) {
     const [expandedFolders, setExpandedFolders] = useState(new Set());
 
     const toggleFolder = (path) => {
@@ -137,7 +137,13 @@ function FileTree({ files, currentPath, onFileSelect }) {
 
                         <div
                             className="flex items-center gap-3 flex-1 min-h-[24px]"
-                            onClick={() => isFolder && toggleFolder(fullPath)}
+                            onClick={() => {
+                                if (isFolder) {
+                                    toggleFolder(fullPath);
+                                } else {
+                                    onFileView(fullPath);
+                                }
+                            }}
                         >
                             {isFolder && (
                                 <ChevronRightIcon
