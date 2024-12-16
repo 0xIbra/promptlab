@@ -142,6 +142,24 @@ function App() {
         }
     };
 
+    const handleSelectAll = () => {
+        setSelectedFiles(prev =>
+            prev.map(f => ({
+                ...f,
+                selected: true
+            }))
+        );
+    };
+
+    const handleUnselectAll = () => {
+        setSelectedFiles(prev =>
+            prev.map(f => ({
+                ...f,
+                selected: false
+            }))
+        );
+    };
+
     const renderFileView = () => {
         if (activeTab === 'tree') {
             return (
@@ -189,6 +207,8 @@ function App() {
             <Toolbar
                 onSelectFolder={handleFolderSelect}
                 onOpenFilters={handleOpenFilters}
+                onSelectAll={handleSelectAll}
+                onUnselectAll={handleUnselectAll}
             />
 
             <div className="flex-1 flex">
