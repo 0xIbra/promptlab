@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import FileTree from './components/FileTree';
 import FileTabs from './components/FileTabs';
 import Instructions from './components/Instructions';
@@ -6,6 +6,7 @@ import SelectedFiles from './components/SelectedFiles';
 import Toolbar from './components/Toolbar';
 import Titlebar from './components/Titlebar';
 import FilterModal from './components/FilterModal';
+import { cache } from './services/cache';
 const { ipcRenderer } = window.require('electron');
 const path = window.require('path');
 const fs = window.require('fs').promises;
@@ -17,6 +18,47 @@ function App() {
     const [activeTab, setActiveTab] = useState('tree');
     const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
     const [filters, setFilters] = useState([]);
+
+    useEffect(() => {
+        const loadLastSession = async () => {
+            const settings = await cache.loadGlobalSettings();
+            if (settings.lastOpenedRepo) {
+                const repoData = await cache.loadRepoData(settings.lastOpenedRepo);
+                setCurrentPath(settings.lastOpenedRepo);
+                setFilters(repoData.filters || []);
+                setInstructions(repoData.instructions || '');
+
+                // Load files and apply filters
+                const files = await ipcRenderer.invoke('read-directory', settings.lastOpenedRepo);
+                setSelectedFiles(files.map(file => ({
+                    path: file,
+                    selected: (repoData.selectedFiles || []).includes(file),
+                    tokens: 0
+                })));
+            }
+        };
+
+        loadLastSession();
+    }, []);
+
+    useEffect(() => {
+        const saveSession = async () => {
+            if (currentPath) {
+                await cache.saveRepoData(currentPath, {
+                    filters,
+                    lastOpened: new Date().toISOString(),
+                    selectedFiles: selectedFiles
+                        .filter(f => f.selected)
+                        .map(f => f.path),
+                    instructions
+                });
+
+                await cache.updateRecentRepos(currentPath);
+            }
+        };
+
+        saveSession();
+    }, [currentPath, filters, selectedFiles, instructions]);
 
     const handleFolderSelect = async () => {
         const electron = window.require('electron');
@@ -61,8 +103,8 @@ function App() {
     };
 
     const handleSaveFilters = async (newFilters) => {
-        // Save filters to .repo_ignore file
         if (currentPath) {
+            // Save filters to .repo_ignore file
             const ignoreFilePath = path.join(currentPath, '.repo_ignore');
             await fs.writeFile(ignoreFilePath, newFilters.join('\n'));
 
@@ -92,6 +134,16 @@ function App() {
                 selected: false,
                 tokens: 0
             })));
+
+            // Update cache
+            await cache.saveRepoData(currentPath, {
+                filters: newFilters,
+                lastOpened: new Date().toISOString(),
+                selectedFiles: selectedFiles
+                    .filter(f => f.selected)
+                    .map(f => f.path),
+                instructions
+            });
         }
     };
 
