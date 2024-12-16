@@ -25,10 +25,14 @@ function Titlebar() {
     };
 
     return (
-        <div className="h-10 bg-gray-900 flex items-center justify-between px-4 select-none draggable">
-            <div className="text-sm text-gray-400">Repo Prompt</div>
+        <div className="h-10 bg-gray-900 flex items-center justify-between px-4 select-none draggable relative">
+            <div className="w-24" />
 
-            <div className="flex items-center space-x-4">
+            <div className="absolute left-1/2 transform -translate-x-1/2 text-sm text-gray-400">
+                Repo Prompt
+            </div>
+
+            <div className="flex items-center space-x-4 z-10">
                 <button
                     onClick={handleMinimize}
                     className="hover:bg-gray-700 p-1 rounded"
