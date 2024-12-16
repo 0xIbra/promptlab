@@ -1,0 +1,22 @@
+I want to build something like that using electronjs or similar (compatible with Ubuntu) to make it a desktop app.
+
+Its features should be the following:
+* open code repo folder/home/ibra/Downloads/repo-prompter-2.png
+* be able to select all files or specific files
+* be able to provide a ignore list (lines) with regex support
+* be able to add instructions with ability to save prompt parts as templates and inject them when needed
+* ability to analyze the whole folder file structure and build a textual tree for visualization via text
+* and finally being able to copy all of that into clipboard
+* also place a total counter of tokens of all selected files
+
+so basically it's a prompt builder that facilitates the copying of code in a codebase with instructions that can be handed off to chatgpt and similar.
+For styling it should be aesthetic just like in the images.
+---
+
+App name: Repo Prompter
+
+Tech:
+* Electron
+* React
+* Tailwind
+* Node.js
