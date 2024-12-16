@@ -6,6 +6,7 @@ module.exports = {
         path: path.resolve(__dirname, 'dist'),
         filename: 'bundle.js',
     },
+    target: 'electron-renderer',
     module: {
         rules: [
             {
@@ -25,6 +26,14 @@ module.exports = {
         ]
     },
     resolve: {
-        extensions: ['.js', '.jsx']
+        extensions: ['.js', '.jsx'],
+        fallback: {
+            "path": false,
+            "fs": false,
+            "crypto": false
+        }
+    },
+    externals: {
+        electron: 'commonjs electron'
     }
 };

@@ -3,6 +3,7 @@ import FileTree from './components/FileTree';
 import Instructions from './components/Instructions';
 import SelectedFiles from './components/SelectedFiles';
 import Toolbar from './components/Toolbar';
+import Titlebar from './components/Titlebar';
 
 function App() {
     const [selectedFiles, setSelectedFiles] = useState([]);
@@ -10,7 +11,8 @@ function App() {
     const [currentPath, setCurrentPath] = useState('');
 
     const handleFolderSelect = async () => {
-        const { ipcRenderer } = window.require('electron');
+        const electron = window.require('electron');
+        const { ipcRenderer } = electron;
         const paths = await ipcRenderer.invoke('select-folder');
         if (paths && paths.length > 0) {
             setCurrentPath(paths[0]);
@@ -25,6 +27,7 @@ function App() {
 
     return (
         <div className="h-screen flex flex-col">
+            <Titlebar />
             <Toolbar onSelectFolder={handleFolderSelect} />
 
             <div className="flex-1 flex">

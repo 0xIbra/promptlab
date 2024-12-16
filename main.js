@@ -1,5 +1,7 @@
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+require('@electron/remote/main').initialize();
 const path = require('path');
+const fs = require('fs').promises;
 
 function createWindow() {
     const win = new BrowserWindow({
@@ -7,12 +9,15 @@ function createWindow() {
         height: 800,
         webPreferences: {
             nodeIntegration: true,
-            contextIsolation: false
+            contextIsolation: false,
+            enableRemoteModule: true
         },
-        backgroundColor: '#111827', // Dark background
-        titleBarStyle: 'hiddenInset'
+        backgroundColor: '#111827',
+        frame: false,
+        transparent: process.platform !== 'linux'
     });
 
+    require('@electron/remote/main').enable(win.webContents);
     win.loadFile('index.html');
 
     // Uncomment for dev tools
@@ -30,12 +35,30 @@ ipcMain.handle('select-folder', async () => {
 });
 
 ipcMain.handle('read-directory', async (event, folderPath) => {
-    const glob = require('glob');
-    const files = await glob('**/*', {
-        cwd: folderPath,
-        nodir: true,
-        ignore: ['**/node_modules/**', '**/dist/**', '**/.git/**']
-    });
+    async function getAllFiles(dir) {
+        const files = await fs.readdir(dir, { withFileTypes: true });
+        const paths = [];
+
+        for (const file of files) {
+            if (file.name.startsWith('.') ||
+                file.name === 'node_modules' ||
+                file.name === 'dist') {
+                continue;
+            }
+
+            const filePath = path.join(dir, file.name);
+
+            if (file.isDirectory()) {
+                paths.push(...await getAllFiles(filePath));
+            } else {
+                paths.push(path.relative(folderPath, filePath));
+            }
+        }
+
+        return paths;
+    }
+
+    const files = await getAllFiles(folderPath);
     return files;
 });
 

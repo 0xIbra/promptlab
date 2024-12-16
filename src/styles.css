@@ -2,6 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Make the window draggable from the titlebar */
+.draggable {
+    -webkit-app-region: drag;
+}
+
+/* Make buttons not draggable */
+.draggable button {
+    -webkit-app-region: no-drag;
+}
+
 body {
     @apply bg-gray-900 text-gray-100;
 }
