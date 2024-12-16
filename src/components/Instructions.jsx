@@ -2,13 +2,20 @@ import React from 'react';
 
 function Instructions({ value, onChange }) {
     return (
-        <div className="p-4 border-b border-gray-800">
-            <div className="text-sm text-gray-400 mb-2">Instructions</div>
+        <div className="border-b border-gray-800">
+            <div className="flex border-b border-gray-800">
+                <button className="px-4 py-2 text-sm text-blue-400 border-b-2 border-blue-400">
+                    Instructions
+                </button>
+                <button className="px-4 py-2 text-sm text-gray-400 hover:text-gray-300">
+                    File Tree
+                </button>
+            </div>
             <textarea
-                className="w-full h-32 bg-gray-800 text-gray-200 p-3 rounded-md resize-none"
-                placeholder="Enter instructions for the AI..."
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
+                placeholder="Enter your instructions here..."
+                className="w-full h-64 bg-transparent p-4 text-sm resize-none focus:outline-none"
             />
         </div>
     );

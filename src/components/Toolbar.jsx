@@ -1,27 +1,27 @@
 import React from 'react';
-import { FolderOpenIcon } from '@heroicons/react/24/outline';
+import { FolderIcon, ArrowsUpDownIcon, FunnelIcon } from '@heroicons/react/24/outline';
 
 function Toolbar({ onSelectFolder }) {
     return (
-        <div className="border-b border-gray-800 p-4 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-                <button
-                    onClick={onSelectFolder}
-                    className="flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 rounded-md text-sm"
-                >
-                    <FolderOpenIcon className="w-4 h-4" />
-                    Select Folder
-                </button>
-            </div>
+        <div className="bg-gray-900 border-b border-gray-800 p-2 flex items-center gap-2">
+            <button
+                onClick={onSelectFolder}
+                className="p-2 hover:bg-gray-800 rounded-md transition-colors"
+            >
+                <FolderIcon className="w-5 h-5" />
+            </button>
 
-            <div className="flex items-center gap-4">
-                <button
-                    className="px-3 py-2 bg-gray-800 hover:bg-gray-700 rounded-md text-sm"
-                    onClick={() => {/* TODO: Implement copy to clipboard */}}
-                >
-                    Copy to Clipboard
-                </button>
-            </div>
+            <button className="p-2 hover:bg-gray-800 rounded-md transition-colors">
+                <ArrowsUpDownIcon className="w-5 h-5" />
+            </button>
+
+            <button className="p-2 hover:bg-gray-800 rounded-md transition-colors">
+                <FunnelIcon className="w-5 h-5" />
+            </button>
+
+            <button className="text-sm px-3 py-1 hover:bg-gray-800 rounded-md transition-colors">
+                Clear
+            </button>
         </div>
     );
 }
