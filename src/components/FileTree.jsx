@@ -2,6 +2,24 @@ import React, { useState } from 'react';
 import { FolderIcon, DocumentIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 
 function FileTree({ files, currentPath, onFileSelect, onFileView }) {
+    console.log('FileTree received:', {
+        filesType: typeof files,
+        isArray: Array.isArray(files),
+        filesLength: files?.length,
+        files,
+        currentPath
+    });
+
+    // Early return if no files
+    if (!files || files.length === 0) {
+        return (
+            <div className="p-4 text-gray-500 text-sm">
+                No files available ({typeof files}, {Array.isArray(files) ? 'is array' : 'not array'})
+            </div>
+        );
+    }
+
+    console.log('FileTree render:', { files, currentPath });
     const [expandedFolders, setExpandedFolders] = useState(new Set());
 
     const toggleFolder = (path) => {

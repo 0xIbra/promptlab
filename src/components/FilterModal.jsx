@@ -1,8 +1,49 @@
 import React, { useState, useEffect } from 'react';
 import { XMarkIcon, AdjustmentsHorizontalIcon } from '@heroicons/react/24/outline';
 
-function FilterModal({ isOpen, onClose, currentPath, onSave, initialFilters = [] }) {
-    const [filters, setFilters] = useState(initialFilters.join('\n'));
+const DEFAULT_IGNORE_PATTERNS = [
+    // Common
+    '# Common',
+    'node_modules',
+    'dist',
+    'build',
+    '.next',
+    '.vite',
+    '.git',
+    '.env',
+    '.env.*',
+    '',
+
+    // Python
+    '# Python',
+    '__pycache__',
+    'venv',
+    '*.pyc',
+
+    // IDE
+    '# IDE',
+    '.idea',
+    '.vscode',
+
+
+    // System
+    '# System',
+    '.DS_Store',
+    'Thumbs.db',
+];
+
+const formatFiltersWithComments = (activeFilters) => {
+    // If user has previously set filters (even if empty), use those
+    if (activeFilters !== undefined) {
+        return activeFilters.join('\n');
+    }
+
+    // Only use default patterns when there's no previous user configuration
+    return DEFAULT_IGNORE_PATTERNS.join('\n');
+};
+
+function FilterModal({ isOpen, onClose, currentPath, onSave, initialFilters }) {
+    const [filters, setFilters] = useState(formatFiltersWithComments(initialFilters));
 
     const handleSave = () => {
         const filterList = filters
@@ -22,7 +63,7 @@ function FilterModal({ isOpen, onClose, currentPath, onSave, initialFilters = []
 
     useEffect(() => {
         if (isOpen) {
-            setFilters(initialFilters.join('\n'));
+            setFilters(formatFiltersWithComments(initialFilters));
         }
     }, [isOpen, initialFilters]);
 
