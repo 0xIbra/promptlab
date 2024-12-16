@@ -25,6 +25,17 @@ function App() {
         }
     };
 
+    const handleFileSelect = (file, forceState) => {
+        setSelectedFiles(prev =>
+            prev.map(f => ({
+                ...f,
+                selected: f.path === file.path
+                    ? (forceState !== undefined ? forceState : !f.selected)
+                    : f.selected
+            }))
+        );
+    };
+
     return (
         <div className="h-screen flex flex-col">
             <Titlebar />
@@ -36,13 +47,7 @@ function App() {
                     <FileTree
                         files={selectedFiles}
                         currentPath={currentPath}
-                        onFileSelect={(file) => {
-                            setSelectedFiles(prev =>
-                                prev.map(f => f.path === file.path ?
-                                    {...f, selected: !f.selected} : f
-                                )
-                            );
-                        }}
+                        onFileSelect={handleFileSelect}
                     />
                 </div>
 
