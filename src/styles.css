@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+    @apply bg-gray-900 text-gray-100;
+}
+
+.file-tree {
+    @apply text-sm text-gray-300;
+}
+
+.file-tree-item {
+    @apply flex items-center gap-2 py-1 px-2 hover:bg-gray-800 rounded;
+}
+
+.selected-file {
+    @apply bg-blue-900/30;
+}
