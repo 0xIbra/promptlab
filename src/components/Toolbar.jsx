@@ -1,7 +1,7 @@
 import React from 'react';
 import { FolderIcon, ArrowsUpDownIcon, FunnelIcon } from '@heroicons/react/24/outline';
 
-function Toolbar({ onSelectFolder }) {
+function Toolbar({ onSelectFolder, onOpenFilters }) {
     return (
         <div className="bg-gray-900 border-b border-gray-800 p-2 flex items-center gap-2">
             <button
@@ -15,7 +15,10 @@ function Toolbar({ onSelectFolder }) {
                 <ArrowsUpDownIcon className="w-5 h-5" />
             </button>
 
-            <button className="p-2 hover:bg-gray-800 rounded-md transition-colors">
+            <button
+                onClick={onOpenFilters}
+                className="p-2 hover:bg-gray-800 rounded-md transition-colors"
+            >
                 <FunnelIcon className="w-5 h-5" />
             </button>
 

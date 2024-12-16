@@ -5,12 +5,18 @@ import Instructions from './components/Instructions';
 import SelectedFiles from './components/SelectedFiles';
 import Toolbar from './components/Toolbar';
 import Titlebar from './components/Titlebar';
+import FilterModal from './components/FilterModal';
+const { ipcRenderer } = window.require('electron');
+const path = window.require('path');
+const fs = window.require('fs').promises;
 
 function App() {
     const [selectedFiles, setSelectedFiles] = useState([]);
     const [instructions, setInstructions] = useState('');
     const [currentPath, setCurrentPath] = useState('');
     const [activeTab, setActiveTab] = useState('tree');
+    const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+    const [filters, setFilters] = useState([]);
 
     const handleFolderSelect = async () => {
         const electron = window.require('electron');
@@ -24,6 +30,18 @@ function App() {
                 selected: false,
                 tokens: 0
             })));
+            try {
+                const ignoreFilePath = path.join(paths[0], '.repo_ignore');
+                const ignoreContent = await fs.readFile(ignoreFilePath, 'utf-8');
+                const loadedFilters = ignoreContent
+                    .split('\n')
+                    .map(line => line.trim())
+                    .filter(line => line && !line.startsWith('#'));
+                setFilters(loadedFilters);
+            } catch (error) {
+                // .repo_ignore doesn't exist, that's fine
+                setFilters([]);
+            }
         }
     };
 
@@ -36,6 +54,58 @@ function App() {
                     : f.selected
             }))
         );
+    };
+
+    const handleOpenFilters = () => {
+        setIsFilterModalOpen(true);
+    };
+
+    const handleSaveFilters = async (newFilters) => {
+        // Save filters to .repo_ignore file
+        if (currentPath) {
+            const ignoreFilePath = path.join(currentPath, '.repo_ignore');
+            await fs.writeFile(ignoreFilePath, newFilters.join('\n'));
+
+            // Get fresh files from directory
+            const files = await ipcRenderer.invoke('read-directory', currentPath);
+
+            // Create the isFileIgnored function with newFilters instead of filters state
+            const isFileIgnoredWithNewFilters = (filePath) => {
+                return newFilters.some(pattern => {
+                    const regex = new RegExp(
+                        pattern
+                            .replace(/\*/g, '.*')
+                            .replace(/\?/g, '.')
+                            .replace(/\//g, '\\/')
+                    );
+                    return regex.test(filePath);
+                });
+            };
+
+            // Filter files with new filters
+            const filteredFiles = files.filter(file => !isFileIgnoredWithNewFilters(file));
+
+            // Update both filters and files in sequence
+            setFilters(newFilters);
+            setSelectedFiles(filteredFiles.map(file => ({
+                path: file,
+                selected: false,
+                tokens: 0
+            })));
+        }
+    };
+
+    const isFileIgnored = (filePath) => {
+        return filters.some(pattern => {
+            // Convert gitignore pattern to regex
+            const regex = new RegExp(
+                pattern
+                    .replace(/\*/g, '.*')
+                    .replace(/\?/g, '.')
+                    .replace(/\//g, '\\/')
+            );
+            return regex.test(filePath);
+        });
     };
 
     const renderFileView = () => {
@@ -82,7 +152,10 @@ function App() {
     return (
         <div className="h-screen flex flex-col">
             <Titlebar />
-            <Toolbar onSelectFolder={handleFolderSelect} />
+            <Toolbar
+                onSelectFolder={handleFolderSelect}
+                onOpenFilters={handleOpenFilters}
+            />
 
             <div className="flex-1 flex">
                 {/* Left sidebar - File tree */}
@@ -104,6 +177,14 @@ function App() {
                     />
                 </div>
             </div>
+
+            <FilterModal
+                isOpen={isFilterModalOpen}
+                onClose={() => setIsFilterModalOpen(false)}
+                currentPath={currentPath}
+                onSave={handleSaveFilters}
+                initialFilters={filters}
+            />
         </div>
     );
 }
