@@ -7,6 +7,7 @@ import Toolbar from './components/Toolbar';
 import Titlebar from './components/Titlebar';
 import FilterModal from './components/FilterModal';
 import { cache } from './services/cache';
+import { DocumentIcon } from '@heroicons/react/24/outline';
 const { ipcRenderer } = window.require('electron');
 const path = window.require('path');
 const fs = window.require('fs').promises;
@@ -171,32 +172,53 @@ function App() {
             );
         }
 
-        // List view
+        // Enhanced list view
         return (
-            <div className="p-2 space-y-1">
-                {selectedFiles.map((file) => (
-                    <div
-                        key={file.path}
-                        className={`flex items-center gap-2 py-1 px-2 hover:bg-gray-800 cursor-pointer rounded
-                            ${file.selected ? 'bg-gray-800' : ''}`}
-                    >
-                        <div className="flex items-center gap-2">
-                            <div
-                                className={`w-4 h-4 border rounded flex items-center justify-center
-                                    ${file.selected ? 'bg-blue-500 border-blue-500' : 'border-gray-600'}
-                                    hover:border-blue-500 transition-colors cursor-pointer`}
-                                onClick={() => handleFileSelect({ path: file.path })}
-                            >
-                                {file.selected && (
-                                    <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                    </svg>
-                                )}
+            <div className="p-4 space-y-2 animate-fade-in">
+                <div className="text-sm text-gray-400 px-2 mb-3">All Files</div>
+                <div className="space-y-1.5">
+                    {Array.isArray(selectedFiles) && selectedFiles.map((file) => (
+                        <div
+                            key={file.path}
+                            className={`group flex items-center justify-between p-2.5 rounded-lg
+                                transition-all duration-200 hover:translate-x-1
+                                ${file.selected
+                                    ? 'bg-blue-500/20 text-blue-100 border border-blue-500/30'
+                                    : 'hover:bg-gray-800/50 border border-transparent'}`}
+                        >
+                            <div className="flex items-center gap-3 min-w-0">
+                                <div
+                                    className={`w-[18px] h-[18px] border rounded-md flex items-center justify-center
+                                        transition-all duration-200 cursor-pointer
+                                        ${file.selected
+                                            ? 'bg-blue-500 border-blue-500 shadow-lg shadow-blue-500/30'
+                                            : 'border-gray-600/50 group-hover:border-blue-500/50'}`}
+                                    onClick={() => handleFileSelect({ path: file.path })}
+                                >
+                                    {file.selected && (
+                                        <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    )}
+                                </div>
+                                <div className="flex items-center gap-2 min-w-0">
+                                    <DocumentIcon className="w-4 h-4 flex-shrink-0 text-gray-400" />
+                                    <span className="text-sm truncate" title={file.path}>
+                                        {file.path}
+                                    </span>
+                                </div>
                             </div>
-                            <span className="text-sm text-gray-300">{file.path}</span>
+                            <div className="flex items-center gap-3">
+                                <span className="text-xs text-gray-500">
+                                    {file.tokens?.toLocaleString() || 0} tokens
+                                </span>
+                                <div className={`w-1.5 h-1.5 rounded-full transition-colors duration-200
+                                    ${file.selected ? 'bg-blue-400' : 'bg-gray-600'}`}
+                                />
+                            </div>
                         </div>
-                    </div>
-                ))}
+                    ))}
+                </div>
             </div>
         );
     };
