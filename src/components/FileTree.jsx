@@ -103,16 +103,16 @@ function FileTree({ files, currentPath, onFileSelect }) {
             const isPartial = isFolder && isPartiallySelected(data);
 
             return (
-                <div key={fullPath} style={{ paddingLeft: `${level * 16}px` }}>
+                <div key={fullPath} style={{ paddingLeft: `${level * 20}px` }}>
                     <div
-                        className={`flex items-center gap-2 py-1 px-2 hover:bg-gray-800 cursor-pointer rounded
+                        className={`flex items-center gap-2 py-1.5 px-3 hover:bg-gray-800 cursor-pointer rounded
                             ${isSelected ? 'bg-gray-800' : ''}`}
                     >
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-3">
                             <div
-                                className={`w-4 h-4 border rounded flex items-center justify-center
+                                className={`w-[18px] h-[18px] border rounded flex items-center justify-center
                                     ${isSelected ? 'bg-blue-500 border-blue-500' :
-                                      isPartial ? 'border-blue-500' : 'border-gray-600'}
+                                    isPartial ? 'border-blue-500' : 'border-gray-600'}
                                     hover:border-blue-500 transition-colors cursor-pointer`}
                                 onClick={(e) => {
                                     e.stopPropagation();
@@ -120,31 +120,31 @@ function FileTree({ files, currentPath, onFileSelect }) {
                                 }}
                             >
                                 {isSelected && (
-                                    <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                     </svg>
                                 )}
                                 {isPartial && (
-                                    <div className="w-2 h-2 bg-blue-500 rounded-sm" />
+                                    <div className="w-2.5 h-2.5 bg-blue-500 rounded-sm" />
                                 )}
                             </div>
                         </div>
 
                         <div
-                            className="flex items-center gap-2 flex-1"
+                            className="flex items-center gap-3 flex-1 min-h-[24px]"
                             onClick={() => isFolder && toggleFolder(fullPath)}
                         >
                             {isFolder && (
                                 <ChevronRightIcon
-                                    className={`w-4 h-4 transition-transform ${
+                                    className={`w-5 h-5 transition-transform ${
                                         isExpanded ? 'transform rotate-90' : ''
                                     }`}
                                 />
                             )}
                             {isFolder ? (
-                                <FolderIcon className="w-4 h-4 text-gray-400" />
+                                <FolderIcon className="w-5 h-5 text-gray-400" />
                             ) : (
-                                <DocumentIcon className="w-4 h-4 text-gray-400" />
+                                <DocumentIcon className="w-5 h-5 text-gray-400" />
                             )}
                             <span className="text-sm text-gray-300">{name}</span>
                         </div>
