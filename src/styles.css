@@ -2,6 +2,60 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Custom gradient backgrounds */
+.bg-gradient-dark {
+    background: linear-gradient(to bottom right, #1a1c2e, #0f1117);
+}
+
+.bg-gradient-sidebar {
+    background: linear-gradient(to bottom, rgba(30, 32, 50, 0.7), rgba(15, 17, 23, 0.7));
+    backdrop-filter: blur(12px);
+}
+
+.bg-gradient-toolbar {
+    background: linear-gradient(to right, rgba(30, 32, 50, 0.5), rgba(15, 17, 23, 0.5));
+    backdrop-filter: blur(8px);
+}
+
+.bg-gradient-button {
+    background: linear-gradient(to right, #3b82f6, #2563eb);
+}
+
+.bg-gradient-button:hover {
+    background: linear-gradient(to right, #2563eb, #1d4ed8);
+}
+
+/* Glass effect */
+.glass-effect {
+    background: rgba(30, 32, 50, 0.3);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(156, 163, 175, 0.3);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(156, 163, 175, 0.5);
+}
+
+/* Base styles */
+body {
+    @apply bg-gradient-dark text-gray-100;
+}
+
 .draggable {
     -webkit-app-region: drag;
 }
@@ -10,26 +64,33 @@
     -webkit-app-region: no-drag;
 }
 
-::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
-::-webkit-scrollbar-track {
-    background: transparent;
+.animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
 }
 
-::-webkit-scrollbar-thumb {
-    background: #374151;
-    border-radius: 4px;
+/* Custom components */
+.file-card {
+    @apply bg-gray-800/30 hover:bg-gray-800/50 backdrop-blur-sm
+           border border-gray-700/30 rounded-lg transition-all duration-200
+           hover:border-gray-600/50 hover:shadow-lg hover:shadow-blue-500/5;
 }
 
-::-webkit-scrollbar-thumb:hover {
-    background: #4B5563;
+.button-primary {
+    @apply bg-gradient-button text-white px-4 py-2 rounded-lg
+           shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30
+           transition-all duration-200 font-medium;
 }
 
-body {
-    @apply bg-gray-900 text-gray-100;
+.button-secondary {
+    @apply bg-gray-800/50 hover:bg-gray-700/50 text-gray-300
+           px-4 py-2 rounded-lg backdrop-blur-sm transition-all duration-200
+           border border-gray-700/30 hover:border-gray-600/50;
 }
 
 .selected-file {

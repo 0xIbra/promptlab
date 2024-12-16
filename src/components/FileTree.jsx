@@ -105,15 +105,20 @@ function FileTree({ files, currentPath, onFileSelect }) {
             return (
                 <div key={fullPath} style={{ paddingLeft: `${level * 20}px` }}>
                     <div
-                        className={`flex items-center gap-2 py-1.5 px-3 hover:bg-gray-800 cursor-pointer rounded
-                            ${isSelected ? 'bg-gray-800' : ''}`}
+                        className={`flex items-center gap-2 py-2 px-3 rounded-lg
+                            transition-all duration-200 group
+                            ${isSelected ? 'bg-blue-500/20 text-blue-100' : 'hover:bg-gray-800/50'}
+                            ${isFolder ? 'hover:bg-gray-800/30' : ''}`}
                     >
                         <div className="flex items-center gap-3">
                             <div
-                                className={`w-[18px] h-[18px] border rounded flex items-center justify-center
-                                    ${isSelected ? 'bg-blue-500 border-blue-500' :
-                                    isPartial ? 'border-blue-500' : 'border-gray-600'}
-                                    hover:border-blue-500 transition-colors cursor-pointer`}
+                                className={`w-[18px] h-[18px] border rounded-md flex items-center justify-center
+                                    transition-all duration-200 cursor-pointer
+                                    ${isSelected
+                                        ? 'bg-blue-500 border-blue-500 shadow-lg shadow-blue-500/30'
+                                        : isPartial
+                                            ? 'border-blue-500/50'
+                                            : 'border-gray-600/50 group-hover:border-blue-500/50'}`}
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     handleSelect(fullPath, data, isFolder);

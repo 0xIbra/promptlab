@@ -8,53 +8,44 @@ import {
 
 function Toolbar({ onSelectFolder, onOpenFilters, onSelectAll, onUnselectAll }) {
     return (
-        <div className="bg-gray-900/50 backdrop-blur-sm border-b border-gray-800 p-2 flex items-center gap-2">
-            {/* Left group */}
-            <div className="flex items-center gap-1.5">
+        <div className="bg-gradient-toolbar border-b border-gray-800/50 p-3 flex items-center gap-3">
+            <div className="flex items-center gap-2">
                 <button
                     onClick={onSelectFolder}
-                    className="p-1.5 hover:bg-gray-800/70 rounded-md transition-all duration-200 text-gray-400 hover:text-gray-200"
-                    title="Open Folder"
+                    className="button-primary flex items-center gap-2"
                 >
                     <FolderIcon className="w-5 h-5" />
+                    <span>Open Folder</span>
                 </button>
 
                 <button
                     onClick={onOpenFilters}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 hover:bg-gray-800/70 rounded-md
-                        transition-all duration-200 text-gray-400 hover:text-gray-200"
-                    title="Manage Filters"
+                    className="button-secondary flex items-center gap-2"
                 >
                     <FunnelIcon className="w-5 h-5" />
-                    <span className="text-sm">Filters</span>
+                    <span>Filters</span>
                 </button>
             </div>
 
-            {/* Divider */}
-            <div className="h-6 w-px bg-gray-800/80 mx-1"></div>
+            <div className="h-6 w-px bg-gray-700/30"></div>
 
-            {/* Selection group with modern pill design */}
-            <div className="flex bg-gray-800/30 rounded-lg p-0.5">
+            <div className="glass-effect rounded-lg p-1 flex gap-1">
                 <button
                     onClick={onSelectAll}
-                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-sm font-medium
-                        hover:bg-blue-500/10 hover:text-blue-400 transition-all duration-200
-                        text-gray-400 hover:shadow-sm"
-                    title="Select All Files"
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-md
+                        hover:bg-blue-500/10 hover:text-blue-400 transition-all duration-200"
                 >
                     <CheckCircleIcon className="w-4 h-4" />
-                    Select All
+                    <span className="text-sm font-medium">Select All</span>
                 </button>
-                <div className="w-px bg-gray-700/50 mx-0.5"></div>
+
                 <button
                     onClick={onUnselectAll}
-                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-sm font-medium
-                        hover:bg-red-500/10 hover:text-red-400 transition-all duration-200
-                        text-gray-400 hover:shadow-sm"
-                    title="Unselect All Files"
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-md
+                        hover:bg-red-500/10 hover:text-red-400 transition-all duration-200"
                 >
                     <XCircleIcon className="w-4 h-4" />
-                    Clear
+                    <span className="text-sm font-medium">Clear</span>
                 </button>
             </div>
         </div>

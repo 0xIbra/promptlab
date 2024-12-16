@@ -43,32 +43,32 @@ function SelectedFiles({ files }) {
     }, [files]);
 
     return (
-        <div className="p-4">
+        <div className="p-4 animate-fade-in">
             <div className="flex justify-between items-center mb-4">
-                <div className="text-sm text-gray-400">Selected Files</div>
-                <div className="text-sm text-gray-400">~{totalTokens.toLocaleString()} Tokens</div>
+                <div className="text-sm font-medium text-gray-300">Selected Files</div>
+                <div className="px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 text-sm">
+                    ~{totalTokens.toLocaleString()} Tokens
+                </div>
             </div>
 
             <div className="space-y-4">
-                {/* Render folder groups first */}
                 {Object.entries(folderGroups).map(([group, groupFiles]) => (
                     <div key={group} className="space-y-2">
                         <div className="flex items-center gap-2 text-sm text-gray-400 pl-1">
                             <FolderIcon className="w-4 h-4" />
                             <span>{group}</span>
-                            <span className="text-gray-600">
+                            <span className="text-gray-500">
                                 (~{groupFiles.reduce((sum, f) => sum + (f.tokens || 0), 0).toLocaleString()} tokens)
                             </span>
                         </div>
 
-                        <div className="grid grid-cols-3 gap-2">
+                        <div className="grid grid-cols-3 gap-3">
                             {groupFiles.map((file) => {
                                 const fileName = file.path.split('/').pop();
                                 return (
                                     <div
                                         key={file.path}
-                                        className="flex items-center justify-between bg-gray-800/50 hover:bg-gray-800
-                                            p-2 rounded-md transition-colors duration-200"
+                                        className="file-card p-3"
                                     >
                                         <div className="flex items-center gap-2 min-w-0">
                                             <DocumentIcon className="w-4 h-4 flex-shrink-0 text-gray-400" />
