@@ -202,7 +202,7 @@ function App() {
     };
 
     return (
-        <div className="h-screen flex flex-col">
+        <div className="h-screen flex flex-col overflow-hidden">
             <Titlebar />
             <Toolbar
                 onSelectFolder={handleFolderSelect}
@@ -211,9 +211,9 @@ function App() {
                 onUnselectAll={handleUnselectAll}
             />
 
-            <div className="flex-1 flex">
+            <div className="flex-1 flex overflow-hidden">
                 {/* Left sidebar - File tree */}
-                <div className="w-72 border-r border-gray-800 flex flex-col">
+                <div className="w-72 border-r border-gray-800 flex flex-col overflow-hidden">
                     <FileTabs activeTab={activeTab} onTabChange={setActiveTab} />
                     <div className="flex-1 overflow-y-auto">
                         {renderFileView()}
@@ -221,14 +221,16 @@ function App() {
                 </div>
 
                 {/* Main content */}
-                <div className="flex-1 flex flex-col">
+                <div className="flex-1 flex flex-col overflow-hidden">
                     <Instructions
                         value={instructions}
                         onChange={setInstructions}
                     />
-                    <SelectedFiles
-                        files={selectedFiles.filter(f => f.selected)}
-                    />
+                    <div className="flex-1 overflow-y-auto">
+                        <SelectedFiles
+                            files={selectedFiles.filter(f => f.selected)}
+                        />
+                    </div>
                 </div>
             </div>
 

@@ -43,7 +43,7 @@ function SelectedFiles({ files }) {
     }, [files]);
 
     return (
-        <div className="flex-1 p-4 overflow-y-auto">
+        <div className="p-4">
             <div className="flex justify-between items-center mb-4">
                 <div className="text-sm text-gray-400">Selected Files</div>
                 <div className="text-sm text-gray-400">~{totalTokens.toLocaleString()} Tokens</div>
