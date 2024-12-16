@@ -16,26 +16,18 @@ function FileTree({ files, currentPath, onFileSelect }) {
         });
     };
 
-    const getAllFilesInFolder = (node, path = '') => {
-        const files = [];
-        Object.entries(node).forEach(([name, data]) => {
-            const fullPath = path + name;
-            if (data.isFile) {
-                files.push(fullPath);
-            } else {
-                files.push(...getAllFilesInFolder(data.children, fullPath + '/'));
-            }
-        });
-        return files;
+    const getAllFilesInFolder = (path) => {
+        return files.filter(f =>
+            f.path.startsWith(path + '/') || f.path === path
+        );
     };
 
     const handleSelect = (path, node, isFolder) => {
         if (isFolder) {
-            const allFiles = getAllFilesInFolder(node.children);
-            // If any file is not selected, select all. Otherwise, deselect all
-            const shouldSelect = allFiles.some(filePath => !files.find(f => f.path === filePath)?.selected);
-            allFiles.forEach(filePath => {
-                onFileSelect({ path: filePath }, shouldSelect);
+            const folderFiles = getAllFilesInFolder(path);
+            const shouldSelect = !isFullySelected(node);
+            folderFiles.forEach(file => {
+                onFileSelect({ path: file.path }, shouldSelect);
             });
         } else {
             onFileSelect({ path });
@@ -43,14 +35,29 @@ function FileTree({ files, currentPath, onFileSelect }) {
     };
 
     const isPartiallySelected = (node) => {
-        const allFiles = getAllFilesInFolder(node.children);
-        const selectedCount = allFiles.filter(path => files.find(f => f.path === path)?.selected).length;
-        return selectedCount > 0 && selectedCount < allFiles.length;
+        if (node.isFile || Object.keys(node.children).length === 0) {
+            return false;
+        }
+
+        const childStates = Object.values(node.children).map(child =>
+            isFullySelected(child)
+        );
+
+        return childStates.some(Boolean) && !childStates.every(Boolean);
     };
 
     const isFullySelected = (node) => {
-        const allFiles = getAllFilesInFolder(node.children);
-        return allFiles.length > 0 && allFiles.every(path => files.find(f => f.path === path)?.selected);
+        if (node.isFile) {
+            return node.selected;
+        }
+
+        if (Object.keys(node.children).length === 0) {
+            return false;
+        }
+
+        return Object.values(node.children).every(child =>
+            isFullySelected(child)
+        );
     };
 
     const buildTree = (paths, files) => {
@@ -59,11 +66,12 @@ function FileTree({ files, currentPath, onFileSelect }) {
             const parts = file.path.split('/');
             let current = tree;
             parts.forEach((part, i) => {
+                const pathSoFar = parts.slice(0, i + 1).join('/');
                 if (!current[part]) {
                     current[part] = {
                         isFile: i === parts.length - 1,
                         children: {},
-                        selected: file.selected
+                        selected: files.find(f => f.path === pathSoFar)?.selected || false
                     };
                 }
                 current = current[part].children;
