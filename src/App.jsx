@@ -30,7 +30,9 @@ function App() {
 
                 // Load files and apply filters
                 const files = await ipcRenderer.invoke('read-directory', settings.lastOpenedRepo);
-                setSelectedFiles(files.map(file => ({
+                const filteredFiles = files.filter(file => !isFileIgnoredWithFilters(file, repoData.filters || []));
+
+                setSelectedFiles(filteredFiles.map(file => ({
                     path: file,
                     selected: (repoData.selectedFiles || []).includes(file),
                     tokens: 0
@@ -66,25 +68,35 @@ function App() {
         const paths = await ipcRenderer.invoke('select-folder');
         if (paths && paths.length > 0) {
             setCurrentPath(paths[0]);
+
+            // Load cached data for this repo first
+            const repoData = await cache.loadRepoData(paths[0]);
+            setFilters(repoData.filters || []);
+            setInstructions(repoData.instructions || '');
+
+            // Get files and apply filters
             const files = await ipcRenderer.invoke('read-directory', paths[0]);
-            setSelectedFiles(files.map(file => ({
+            const filteredFiles = files.filter(file => !isFileIgnoredWithFilters(file, repoData.filters || []));
+
+            setSelectedFiles(filteredFiles.map(file => ({
                 path: file,
-                selected: false,
+                selected: (repoData.selectedFiles || []).includes(file),
                 tokens: 0
             })));
-            try {
-                const ignoreFilePath = path.join(paths[0], '.repo_ignore');
-                const ignoreContent = await fs.readFile(ignoreFilePath, 'utf-8');
-                const loadedFilters = ignoreContent
-                    .split('\n')
-                    .map(line => line.trim())
-                    .filter(line => line && !line.startsWith('#'));
-                setFilters(loadedFilters);
-            } catch (error) {
-                // .repo_ignore doesn't exist, that's fine
-                setFilters([]);
-            }
         }
+    };
+
+    // Helper function to check if file should be ignored using provided filters
+    const isFileIgnoredWithFilters = (filePath, filtersList) => {
+        return filtersList.some(pattern => {
+            const regex = new RegExp(
+                pattern
+                    .replace(/\*/g, '.*')
+                    .replace(/\?/g, '.')
+                    .replace(/\//g, '\\/')
+            );
+            return regex.test(filePath);
+        });
     };
 
     const handleFileSelect = (file, forceState) => {
@@ -104,28 +116,11 @@ function App() {
 
     const handleSaveFilters = async (newFilters) => {
         if (currentPath) {
-            // Save filters to .repo_ignore file
-            const ignoreFilePath = path.join(currentPath, '.repo_ignore');
-            await fs.writeFile(ignoreFilePath, newFilters.join('\n'));
-
             // Get fresh files from directory
             const files = await ipcRenderer.invoke('read-directory', currentPath);
 
-            // Create the isFileIgnored function with newFilters instead of filters state
-            const isFileIgnoredWithNewFilters = (filePath) => {
-                return newFilters.some(pattern => {
-                    const regex = new RegExp(
-                        pattern
-                            .replace(/\*/g, '.*')
-                            .replace(/\?/g, '.')
-                            .replace(/\//g, '\\/')
-                    );
-                    return regex.test(filePath);
-                });
-            };
-
             // Filter files with new filters
-            const filteredFiles = files.filter(file => !isFileIgnoredWithNewFilters(file));
+            const filteredFiles = files.filter(file => !isFileIgnoredWithFilters(file, newFilters));
 
             // Update both filters and files in sequence
             setFilters(newFilters);
@@ -145,19 +140,6 @@ function App() {
                 instructions
             });
         }
-    };
-
-    const isFileIgnored = (filePath) => {
-        return filters.some(pattern => {
-            // Convert gitignore pattern to regex
-            const regex = new RegExp(
-                pattern
-                    .replace(/\*/g, '.*')
-                    .replace(/\?/g, '.')
-                    .replace(/\//g, '\\/')
-            );
-            return regex.test(filePath);
-        });
     };
 
     const renderFileView = () => {
