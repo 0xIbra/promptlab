@@ -1,6 +1,10 @@
 # PromptLab
 
-A powerful desktop laboratory for crafting code-based prompts for Large Language Models. Built with Electron and React.
+A powerful desktop laboratory for crafting code-based prompts for LLMs.  
+Allows users to quickly inject their code and craft a prompt with parseable xml format response.  
+Works best with reasoning models.
+
+⚠️ **Note**: This is an experimental project and may have compatibility issues on some operating systems. Provided "as is" without any warranties.
 
 ![PromptLab Screenshot](assets/screenshot.png)
 
