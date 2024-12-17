@@ -59,7 +59,7 @@ function createWindow() {
         backgroundColor: '#111827',
         frame: false,
         transparent: process.platform !== 'linux',
-        icon: path.join(__dirname, 'assets', 'icon.png')
+        icon: path.join(__dirname, 'assets', 'icon-256.png')
     });
 
     remote.enable(win.webContents);

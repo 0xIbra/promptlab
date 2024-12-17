@@ -1,6 +1,6 @@
 {
   "name": "repo-prompter",
-  "version": "0.1.2",
+  "version": "0.1.4",
   "description": "Code repo prompt builder, bridge between your code and your favorite LLM chat.",
   "main": "./main.js",
   "scripts": {
@@ -63,18 +63,24 @@
     "linux": {
       "target": ["AppImage", "deb"],
       "category": "Development",
-      "icon": "assets/icon.png",
+      "icon": "assets/icons",
       "maintainer": "0xIbra <dev@0xibra.dev>",
       "synopsis": "Code repository prompt builder for LLMs",
-      "description": "A desktop application for preparing and formatting code repositories for LLM prompts."
+      "description": "A desktop application for preparing and formatting code repositories for LLM prompts.",
+      "desktop": {
+        "Name": "Repo Prompter",
+        "Comment": "Code repository prompt builder for LLMs",
+        "Categories": "Development;IDE;",
+        "Icon": "repo-prompter"
+      }
     },
     "win": {
       "target": ["nsis", "portable"],
-      "icon": "assets/icon.png"
+      "icon": "assets/icon-256.png"
     },
     "mac": {
       "target": ["dmg"],
-      "icon": "assets/icon.png",
+      "icon": "assets/icon-256.png",
       "category": "public.app-category.developer-tools"
     },
     "deb": {
