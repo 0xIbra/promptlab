@@ -43,8 +43,9 @@ function FileTree({ files, currentPath, onFileSelect, onFileView }) {
     };
 
     const getAllFilesInFolder = (path) => {
+        const folderPath = path.endsWith('/') ? path : path + '/';
         return files.filter(f =>
-            f.path.startsWith(path + '/') || f.path === path
+            f.path.startsWith(folderPath) || f.path === path
         );
     };
 
@@ -67,28 +68,29 @@ function FileTree({ files, currentPath, onFileSelect, onFileView }) {
             return false;
         }
 
-        const allFiles = Object.values(node.children).flatMap(child =>
-            child.isFile ? [child] : Object.values(child.children)
-        );
+        // Get all text files in this folder and subfolders
+        const folderFiles = getAllFilesInFolder(node.path);
+        const textFiles = folderFiles.filter(f => f.isText);
 
-        if (allFiles.length === 0) return false;
+        if (textFiles.length === 0) return false;
 
-        const selectedCount = allFiles.filter(file => file.selected).length;
-        return selectedCount > 0 && selectedCount < allFiles.length;
+        const selectedCount = textFiles.filter(f => f.selected).length;
+        return selectedCount > 0 && selectedCount < textFiles.length;
     };
 
     const isFullySelected = (node) => {
         if (node.isFile) {
-            return node.selected;
+            const fileEntry = files.find(f => f.path === node.path);
+            return Boolean(fileEntry?.selected);
         }
 
-        const allFiles = Object.values(node.children).flatMap(child =>
-            child.isFile ? [child] : Object.values(child.children)
-        );
+        // Get all text files in this folder and subfolders
+        const folderFiles = getAllFilesInFolder(node.path);
+        const textFiles = folderFiles.filter(f => f.isText);
 
-        if (allFiles.length === 0) return false;
+        if (textFiles.length === 0) return false;
 
-        return allFiles.every(file => file.selected);
+        return textFiles.every(f => f.selected);
     };
 
     const buildTree = (paths, files) => {
@@ -96,14 +98,17 @@ function FileTree({ files, currentPath, onFileSelect, onFileView }) {
         paths.forEach(file => {
             const parts = file.path.split('/');
             let current = tree;
+            let currentPath = '';
+
             parts.forEach((part, i) => {
-                const pathSoFar = parts.slice(0, i + 1).join('/');
+                currentPath = currentPath ? currentPath + '/' + part : part;
                 if (!current[part]) {
                     current[part] = {
                         isFile: i === parts.length - 1,
                         children: {},
-                        selected: files.find(f => f.path === pathSoFar)?.selected || false,
-                        tokens: files.find(f => f.path === pathSoFar)?.tokens || 0
+                        path: currentPath, // Add path to each node
+                        selected: files.find(f => f.path === currentPath)?.selected || false,
+                        tokens: files.find(f => f.path === currentPath)?.tokens || 0
                     };
                 }
                 current = current[part].children;
