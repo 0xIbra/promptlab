@@ -59,7 +59,8 @@ function FileTree({ files, currentPath, onFileSelect, onFileView }) {
                 }
             });
         } else {
-            onFileSelect({ path });
+            const file = files.find(f => f.path === path);
+            onFileSelect({ path }, file ? !file.selected : true);
         }
     };
 
