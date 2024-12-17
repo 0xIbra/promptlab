@@ -3,7 +3,7 @@ import { ClipboardDocumentIcon, XMarkIcon, EyeIcon, FolderIcon } from '@heroicon
 const { ipcRenderer } = window.require('electron');
 
 function CopyButton({ selectedFiles, instructions, activeTemplates }) {
-    const [includeFileTree, setIncludeFileTree] = useState(false);
+    const [includeFileTree, setIncludeFileTree] = useState(true);
     const [isCopying, setIsCopying] = useState(false);
     const [showPreview, setShowPreview] = useState(false);
     const [previewContent, setPreviewContent] = useState('');
