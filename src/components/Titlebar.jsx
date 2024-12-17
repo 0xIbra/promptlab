@@ -57,7 +57,7 @@ function Titlebar() {
             <div className="w-24" />
 
             <div className="absolute left-1/2 transform -translate-x-1/2 text-sm text-gray-400">
-                Repo Prompt
+                PromptLab
             </div>
 
             <div className="flex items-center space-x-4 z-10">

@@ -12,7 +12,7 @@ const store = new Store();
 // Configure logging
 log.transports.file.level = 'info';
 autoUpdater.logger = log;
-log.info('App starting...');
+log.info('PromptLab starting...');
 
 const DEFAULT_IGNORE_PATTERNS = [
     // Common
@@ -59,7 +59,7 @@ function createWindow() {
         backgroundColor: '#111827',
         frame: false,
         transparent: process.platform !== 'linux',
-        icon: path.join(__dirname, 'assets', 'icon-256.png')
+        icon: path.join(__dirname, 'assets/icons/256x256.png')
     });
 
     remote.enable(win.webContents);

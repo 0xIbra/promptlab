@@ -1,11 +1,12 @@
-# Repo Prompter
+# PromptLab
 
-A powerful desktop application for preparing and formatting code repositories for LLM prompts. Built with Electron and React.
+A powerful desktop laboratory for crafting code-based prompts for Large Language Models. Built with Electron and React.
 
-![Repo Prompter Screenshot](assets/screenshot.png)
+![PromptLab Screenshot](assets/screenshot.png)
 
 ## Features
 
+- 🧪 Transform your code into perfect LLM prompts
 - 📁 Open and analyze any code repository
 - 🔍 Select specific files or entire directories
 - 🚫 Customizable ignore patterns with regex support
@@ -17,24 +18,24 @@ A powerful desktop application for preparing and formatting code repositories fo
 ## Installation
 
 ### Linux
-Download the latest `.AppImage` or `.deb` file from the [releases page](https://github.com/0xIbra/repo-prompter/releases).
+Download the latest `.AppImage` or `.deb` file from the [releases page](https://github.com/0xIbra/promptlab/releases).
 
 #### AppImage
 ```bash
-chmod +x RepoPrompter-*.AppImage
-./RepoPrompter-*.AppImage
+chmod +x PromptLab-*.AppImage
+./PromptLab-*.AppImage
 ```
 
 #### Debian/Ubuntu
 ```bash
-sudo dpkg -i repo-prompter_*.deb
+sudo dpkg -i promptlab_*.deb
 ```
 
 ### Windows
-Download and run the latest `.exe` installer from the [releases page](https://github.com/0xIbra/repo-prompter/releases).
+Download and run the latest `.exe` installer from the [releases page](https://github.com/0xIbra/promptlab/releases).
 
 ### macOS
-Download and install the latest `.dmg` file from the [releases page](https://github.com/0xIbra/repo-prompter/releases).
+Download and install the latest `.dmg` file from the [releases page](https://github.com/0xIbra/promptlab/releases).
 
 ## Development
 
@@ -45,8 +46,8 @@ Download and install the latest `.dmg` file from the [releases page](https://git
 ### Setup
 1. Clone the repository
 ```bash
-git clone https://github.com/0xIbra/repo-prompter.git
-cd repo-prompter
+git clone https://github.com/0xIbra/promptlab.git
+cd promptlab
 ```
 
 2. Install dependencies

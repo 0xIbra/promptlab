@@ -1,7 +1,7 @@
 {
-  "name": "repo-prompter",
+  "name": "promptlab",
   "version": "0.1.4",
-  "description": "Code repo prompt builder, bridge between your code and your favorite LLM chat.",
+  "description": "A desktop laboratory for crafting code-based prompts for LLMs.",
   "main": "./main.js",
   "scripts": {
     "start": "electron .",
@@ -48,8 +48,8 @@
     "react-dom": "^18.2.0"
   },
   "build": {
-    "appId": "com.repoprompter.app",
-    "productName": "Repo Prompter",
+    "appId": "com.promptlab.app",
+    "productName": "PromptLab",
     "directories": {
       "output": "release"
     },
@@ -65,13 +65,13 @@
       "category": "Development",
       "icon": "assets/icons",
       "maintainer": "0xIbra <dev@0xibra.dev>",
-      "synopsis": "Code repository prompt builder for LLMs",
-      "description": "A desktop application for preparing and formatting code repositories for LLM prompts.",
+      "synopsis": "Code-to-LLM prompt laboratory",
+      "description": "A desktop laboratory for preparing and crafting code-based prompts for LLMs.",
       "desktop": {
-        "Name": "Repo Prompter",
-        "Comment": "Code repository prompt builder for LLMs",
+        "Name": "PromptLab",
+        "Comment": "Code-to-LLM prompt laboratory",
         "Categories": "Development;IDE;",
-        "Icon": "repo-prompter"
+        "Icon": "promptlab"
       }
     },
     "win": {
