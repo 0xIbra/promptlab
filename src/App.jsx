@@ -11,6 +11,7 @@ import { DocumentIcon } from '@heroicons/react/24/outline';
 import { countFileTokens } from './services/tokenizer';
 import { useLoading } from './context/LoadingContext';
 import CopyButton from './components/CopyButton';
+import CodeChangesModal from './components/CodeChangesModal';
 const { ipcRenderer } = window.require('electron');
 const path = window.require('path');
 const fs = window.require('fs').promises;
@@ -29,6 +30,7 @@ function App() {
     const [sidebarWidth, setSidebarWidth] = useState(288);
     const isResizing = useRef(false);
     const [activeTemplates, setActiveTemplates] = useState([]);
+    const [isChangesModalOpen, setIsChangesModalOpen] = useState(false);
 
     useEffect(() => {
         const loadLastSession = async () => {
@@ -373,6 +375,7 @@ function App() {
                 onUnselectAll={handleUnselectAll}
                 activeTab={activeMainTab}
                 onTabChange={setActiveMainTab}
+                onOpenChanges={() => setIsChangesModalOpen(true)}
             />
 
             <div className="flex-1 flex overflow-hidden">
@@ -426,6 +429,11 @@ function App() {
                 onClose={() => setIsFilterModalOpen(false)}
                 currentPath={currentPath}
                 onSave={handleSaveFilters}
+            />
+
+            <CodeChangesModal
+                isOpen={isChangesModalOpen}
+                onClose={() => setIsChangesModalOpen(false)}
             />
         </div>
     );

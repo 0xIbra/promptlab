@@ -5,7 +5,8 @@ import {
     CheckCircleIcon,
     XCircleIcon,
     DocumentTextIcon,
-    DocumentIcon
+    DocumentIcon,
+    CodeBracketIcon
 } from '@heroicons/react/24/outline';
 
 function Toolbar({
@@ -14,7 +15,8 @@ function Toolbar({
     onSelectAll,
     onUnselectAll,
     activeTab,
-    onTabChange
+    onTabChange,
+    onOpenChanges
 }) {
     return (
         <div className="bg-gradient-toolbar border-b border-gray-800/50 p-3 flex items-center gap-3">
@@ -85,6 +87,16 @@ function Toolbar({
                     <span className="text-sm font-medium">File Viewer</span>
                 </button>
             </div>
+
+            <div className="h-6 w-px bg-gray-700/30"></div>
+
+            <button
+                onClick={onOpenChanges}
+                className="button-secondary flex items-center gap-2"
+            >
+                <CodeBracketIcon className="w-5 h-5" />
+                <span>Apply Changes</span>
+            </button>
         </div>
     );
 }

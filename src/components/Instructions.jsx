@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { DocumentIcon, TagIcon, XMarkIcon, PlusIcon } from '@heroicons/react/24/outline';
-import TemplateManager from './TemplateManager';
+import TemplateManager, { DEFAULT_TEMPLATES } from './TemplateManager';
 const { ipcRenderer } = window.require('electron');
 
 function Instructions({ value, onChange, activeTab, onTabChange, selectedFile, fileContent, activeTemplates, setActiveTemplates }) {
@@ -169,7 +169,9 @@ function Instructions({ value, onChange, activeTab, onTabChange, selectedFile, f
         );
     };
 
-    const filteredTemplates = templates.filter(template =>
+    const allTemplates = [...DEFAULT_TEMPLATES, ...templates.filter(t => !t.isDefault)];
+
+    const filteredTemplates = allTemplates.filter(template =>
         template.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
@@ -283,7 +285,15 @@ function Instructions({ value, onChange, activeTab, onTabChange, selectedFile, f
                                 >
                                     <TagIcon className="w-4 h-4 text-blue-400" />
                                     <div className="flex-1 min-w-0">
-                                        <div className="text-sm truncate">{template.name}</div>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-sm truncate">{template.name}</span>
+                                            {template.isDefault && (
+                                                <span className="px-1.5 py-0.5 text-[10px] rounded-full
+                                                    bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                                                    Default
+                                                </span>
+                                            )}
+                                        </div>
                                         <div className="text-xs text-gray-500 truncate">
                                             {template.content}
                                         </div>

@@ -1,3 +1,52 @@
+export const DEFAULT_TEMPLATES = [
+    {
+        name: "XML Response Format",
+        content: `<meta_prompt>
+You are an expert software engineer.
+You are tasked with following my instructions.
+Use the included project instructions as a general guide.
+You will respond with 2 sections: A summary section and an XLM section.
+
+Here are some notes on how you should respond in the summary section:
+- Provide a brief overall summary
+- Provide a 1-sentence summary for each file changed and why.
+- Provide a 1-sentence summary for each file deleted and why.
+- Format this section as markdown.
+
+Here are some notes on how you should respond in the XML section:
+- Respond with the XML and nothing else
+- Include all of the changed files
+- Specify each file operation with CREATE, UPDATE, or DELETE
+- If it is a CREATE or UPDATE include the full file code. Do not get lazy.
+- Each file should include a brief change summary.
+- Include the full file path
+- I am going to copy/paste that entire XML section into a parser to automatically apply the changes you made, so put the XML block inside a markdown codeblock.
+- Make sure to enclose the code with ![CDATA[__CODE HERE__]]
+
+Here is how you should structure the XML:
+<code_changes>
+    <changed_files>
+        <file>
+            <file_summary>**BRIEF CHANGE SUMMARY HERE**</file_summary>
+            <file_operation>**FILE OPERATION HERE**</file_operation>
+            <file_path>**FILE PATH HERE**</file_path>
+            <file_code><![CDATA[
+__FULL FILE CODE HERE__
+]]></file_code>
+        </file>
+        **REMAINING FILES HERE**
+    </changed_files>
+</code_changes>
+
+So the XML section will be:
+\`\`\`xml
+__XML HERE__
+\`\`\`
+</meta_prompt>`,
+        isDefault: true
+    }
+];
+
 import React, { useState } from 'react';
 import { PlusIcon, XMarkIcon, TagIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 
@@ -15,11 +64,15 @@ function TemplateManager({ templates, onSave, onInsert, onClose }) {
     };
 
     const handleDeleteTemplate = (index) => {
+        if (allTemplates[index].isDefault) return;
+
         const updatedTemplates = templates.filter((_, i) => i !== index);
         onSave(updatedTemplates);
     };
 
-    const filteredTemplates = templates.filter(template =>
+    const allTemplates = [...DEFAULT_TEMPLATES, ...templates.filter(t => !t.isDefault)];
+
+    const filteredTemplates = allTemplates.filter(template =>
         template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         template.content.toLowerCase().includes(searchQuery.toLowerCase())
     );
@@ -69,8 +122,11 @@ function TemplateManager({ templates, onSave, onInsert, onClose }) {
                         {filteredTemplates.map((template, index) => (
                             <div
                                 key={index}
-                                className="group relative p-4 rounded-lg bg-gray-800/30 border border-gray-700/50
-                                    hover:border-blue-500/30 transition-all duration-200"
+                                className={`group relative p-4 rounded-lg bg-gray-800/30 border
+                                    ${template.isDefault
+                                        ? 'border-blue-500/30'
+                                        : 'border-gray-700/50 hover:border-blue-500/30'}
+                                    transition-all duration-200`}
                             >
                                 <div className="flex items-center justify-between mb-3">
                                     <div className="flex items-center gap-2">
@@ -78,6 +134,12 @@ function TemplateManager({ templates, onSave, onInsert, onClose }) {
                                         <span className="text-sm font-medium text-gray-300">
                                             {template.name}
                                         </span>
+                                        {template.isDefault && (
+                                            <span className="px-2 py-0.5 text-xs rounded-full
+                                                bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                                                Default
+                                            </span>
+                                        )}
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <button
@@ -88,13 +150,15 @@ function TemplateManager({ templates, onSave, onInsert, onClose }) {
                                         >
                                             Use Template
                                         </button>
-                                        <button
-                                            onClick={() => handleDeleteTemplate(index)}
-                                            className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-500/20
-                                                rounded transition-all duration-200"
-                                        >
-                                            <XMarkIcon className="w-3.5 h-3.5 text-red-400" />
-                                        </button>
+                                        {!template.isDefault && (
+                                            <button
+                                                onClick={() => handleDeleteTemplate(index)}
+                                                className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-500/20
+                                                    rounded transition-all duration-200"
+                                            >
+                                                <XMarkIcon className="w-3.5 h-3.5 text-red-400" />
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                                 <pre className="text-sm text-gray-400 whitespace-pre-wrap h-[120px] overflow-y-auto

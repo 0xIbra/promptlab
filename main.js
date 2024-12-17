@@ -414,9 +414,10 @@ ipcMain.handle('generate-prompt', async (event, { selectedFiles, instructions, a
 
         // Add instructions
         if (instructions?.trim()) {
-            sections.push(`Instructions:\n${instructions.trim()}\n---`);
+            sections.push(`Instructions:\n${instructions.trim()}`);
         }
 
+        sections.push("---")
         // Add file tree if requested (now only for selected files)
         if (includeFileTree && selectedFiles?.length > 0) {
             try {
@@ -467,4 +468,61 @@ ipcMain.handle('generate-prompt', async (event, { selectedFiles, instructions, a
         console.error('Error generating prompt:', error);
         throw error;
     }
+});
+
+ipcMain.handle('apply-code-changes', async (event, changes) => {
+    const currentRepo = store.get('globalSettings', {}).lastOpenedRepo;
+    if (!currentRepo) {
+        throw new Error('No repository is currently open');
+    }
+
+    const results = [];
+    for (const change of changes) {
+        const fullPath = path.join(currentRepo, change.path);
+
+        // Security check - ensure file is within repo
+        if (!fullPath.startsWith(currentRepo)) {
+            results.push({
+                path: change.path,
+                success: false,
+                error: 'Invalid file path'
+            });
+            continue;
+        }
+
+        try {
+            switch (change.operation.toLowerCase()) {
+                case 'create':
+                    // Ensure directory exists
+                    await fs.mkdir(path.dirname(fullPath), { recursive: true });
+                    await fs.writeFile(fullPath, change.code);
+                    break;
+
+                case 'modify':
+                    await fs.writeFile(fullPath, change.code);
+                    break;
+
+                case 'delete':
+                    await fs.unlink(fullPath);
+                    break;
+
+                default:
+                    throw new Error(`Unknown operation: ${change.operation}`);
+            }
+
+            results.push({
+                path: change.path,
+                success: true,
+                summary: change.summary
+            });
+        } catch (error) {
+            results.push({
+                path: change.path,
+                success: false,
+                error: error.message
+            });
+        }
+    }
+
+    return results;
 });
