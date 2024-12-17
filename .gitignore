@@ -27,8 +27,10 @@ dist-ssr
 # Build output
 release/
 dist/
-build/
 out/
+build/*
+!build/
+!build/entitlements.mac.plist
 
 # Environment files
 .env
