@@ -5,6 +5,12 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: write
+  packages: write
+  issues: write
+  pull-requests: write
+
 jobs:
   release:
     runs-on: ${{ matrix.os }}
@@ -43,6 +49,7 @@ jobs:
 
       - name: Upload artifacts
         uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
             release/*.AppImage
@@ -51,5 +58,6 @@ jobs:
             release/*.dmg
           draft: false
           prerelease: false
+          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
