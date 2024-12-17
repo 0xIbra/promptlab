@@ -241,7 +241,17 @@ ipcMain.handle('load-global-settings', async () => {
 });
 
 ipcMain.handle('save-global-settings', async (event, settings) => {
-    store.set('globalSettings', settings);
+    try {
+        // Ensure the path exists and is absolute
+        if (settings.lastOpenedRepo) {
+            const absolutePath = path.resolve(settings.lastOpenedRepo);
+            settings.lastOpenedRepo = absolutePath;
+        }
+        store.set('globalSettings', settings);
+    } catch (error) {
+        console.error('Error saving global settings:', error);
+        throw error;
+    }
 });
 
 ipcMain.handle('load-repo-data', async (event, repoPath) => {
@@ -310,4 +320,84 @@ ipcMain.handle('load-templates', async () => {
 
 ipcMain.handle('save-templates', async (event, templates) => {
     store.set('templates', templates);
+});
+
+ipcMain.handle('read-file', async (event, filePath) => {
+    try {
+        const currentRepo = store.get('globalSettings', {}).lastOpenedRepo;
+        if (!currentRepo) {
+            throw new Error('No repository is currently open');
+        }
+
+        // Correctly join the repo path with the relative file path
+        const fullPath = path.join(currentRepo, filePath);
+
+        // Verify the file is within the repo directory (security check)
+        if (!fullPath.startsWith(currentRepo)) {
+            throw new Error('Invalid file path');
+        }
+
+        // Log paths for debugging
+        console.log('Reading file:', {
+            currentRepo,
+            filePath,
+            fullPath
+        });
+
+        const content = await fs.readFile(fullPath, 'utf-8');
+        return content;
+    } catch (error) {
+        console.error(`Error reading file ${filePath}:`, error);
+        throw error;
+    }
+});
+
+// Add this new IPC handler
+ipcMain.handle('generate-prompt', async (event, { selectedFiles, instructions, activeTemplates, currentRepo }) => {
+    try {
+        const sections = [];
+
+        // Add templates
+        if (activeTemplates?.length > 0) {
+            sections.push(activeTemplates.map(t => t.content).join('\n\n'));
+        }
+
+        // Add instructions
+        if (instructions?.trim()) {
+            sections.push(`Instructions:\n${instructions.trim()}\n---`);
+        }
+
+        const getFileContent = async (filePath) => {
+            const fullPath = path.join(currentRepo, filePath);
+            const content = await fs.readFile(fullPath, 'utf-8');
+
+            const text = `${filePath}\n\`\`\`\n${content}\n\`\`\``;
+            return text;
+        };
+
+        // Add file contents
+        if (selectedFiles?.length > 0) {
+            for (const file of selectedFiles) {
+                try {
+                    const fullPath = path.join(currentRepo, file.path);
+
+                    // Security check
+                    if (!fullPath.startsWith(currentRepo)) {
+                        throw new Error('Invalid file path');
+                    }
+
+                    sections.push(await getFileContent(file.path));
+                } catch (error) {
+                    console.error(`Error reading file ${file.path}:`, error);
+                    sections.push(`${file.path}\nError reading file: ${error.message}`);
+                }
+            }
+        }
+
+        let text = `=== codebase ===\n${sections.join('\n\n')}`;
+        return text;
+    } catch (error) {
+        console.error('Error generating prompt:', error);
+        throw error;
+    }
 });

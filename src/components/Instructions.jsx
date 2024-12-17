@@ -3,7 +3,7 @@ import { DocumentIcon, TagIcon, XMarkIcon, PlusIcon } from '@heroicons/react/24/
 import TemplateManager from './TemplateManager';
 const { ipcRenderer } = window.require('electron');
 
-function Instructions({ value, onChange, activeTab, onTabChange, selectedFile, fileContent }) {
+function Instructions({ value, onChange, activeTab, onTabChange, selectedFile, fileContent, activeTemplates, setActiveTemplates }) {
     const [isTemplateManagerOpen, setIsTemplateManagerOpen] = useState(false);
     const [templates, setTemplates] = useState([]);
     const [showTemplateSelector, setShowTemplateSelector] = useState(false);
@@ -11,7 +11,6 @@ function Instructions({ value, onChange, activeTab, onTabChange, selectedFile, f
     const [searchQuery, setSearchQuery] = useState('');
     const textareaRef = useRef(null);
     const selectorRef = useRef(null);
-    const [activeTemplates, setActiveTemplates] = useState([]);
     const [height, setHeight] = useState(256);
     const isResizing = useRef(false);
     const startY = useRef(0);

@@ -10,6 +10,7 @@ import { cache } from './services/cache';
 import { DocumentIcon } from '@heroicons/react/24/outline';
 import { countFileTokens } from './services/tokenizer';
 import { useLoading } from './context/LoadingContext';
+import CopyButton from './components/CopyButton';
 const { ipcRenderer } = window.require('electron');
 const path = window.require('path');
 const fs = window.require('fs').promises;
@@ -27,6 +28,7 @@ function App() {
     const { setLoading } = useLoading();
     const [sidebarWidth, setSidebarWidth] = useState(288);
     const isResizing = useRef(false);
+    const [activeTemplates, setActiveTemplates] = useState([]);
 
     useEffect(() => {
         const loadLastSession = async () => {
@@ -121,7 +123,13 @@ function App() {
 
                     setSelectedFiles(fileObjects);
 
+                    // Save the selected path as lastOpenedRepo
                     await cache.saveGlobalSettings({
+                        lastOpenedRepo: selectedPath
+                    });
+
+                    // Also update the store directly through main process
+                    await ipcRenderer.invoke('save-global-settings', {
                         lastOpenedRepo: selectedPath
                     });
                 } catch (error) {
@@ -396,6 +404,8 @@ function App() {
                         onTabChange={setActiveMainTab}
                         selectedFile={selectedViewFile}
                         fileContent={fileContent}
+                        activeTemplates={activeTemplates}
+                        setActiveTemplates={setActiveTemplates}
                     />
                     <div className="flex-1 overflow-y-auto">
                         <SelectedFiles
@@ -404,6 +414,12 @@ function App() {
                     </div>
                 </div>
             </div>
+
+            <CopyButton
+                selectedFiles={selectedFiles.filter(f => f.selected)}
+                instructions={instructions}
+                activeTemplates={activeTemplates}
+            />
 
             <FilterModal
                 isOpen={isFilterModalOpen}
