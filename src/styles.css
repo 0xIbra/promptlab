@@ -113,3 +113,13 @@ body {
 textarea::placeholder {
     @apply text-gray-600;
 }
+
+/* Cursor styles for resizing */
+.resize-x {
+    cursor: col-resize !important;
+    user-select: none;
+}
+
+.resize-x * {
+    user-select: none;
+}

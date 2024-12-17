@@ -235,7 +235,9 @@ app.on('activate', () => {
 });
 
 ipcMain.handle('load-global-settings', async () => {
-    return store.get('globalSettings', {});
+    return store.get('globalSettings', {
+        lastOpenedRepo: null
+    });
 });
 
 ipcMain.handle('save-global-settings', async (event, settings) => {
@@ -268,4 +270,29 @@ ipcMain.handle('update-recent-repos', async (event, repoPath) => {
 
     store.set('recentRepos', updatedRepos);
     return updatedRepos;
+});
+
+// Add a new handler specifically for UI settings
+ipcMain.handle('load-ui-settings', async () => {
+    const settings = store.get('uiSettings', {
+        sidebarWidth: 288 // Default width
+    });
+    return settings;
+});
+
+ipcMain.handle('save-ui-settings', async (event, settings) => {
+    // Only allow specific UI-related settings
+    const allowedKeys = ['sidebarWidth'];
+    const sanitizedSettings = {};
+
+    for (const key of allowedKeys) {
+        if (key in settings) {
+            sanitizedSettings[key] = settings[key];
+        }
+    }
+
+    store.set('uiSettings', {
+        ...store.get('uiSettings', {}),
+        ...sanitizedSettings
+    });
 });

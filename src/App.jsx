@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import FileTree from './components/FileTree';
 import FileTabs from './components/FileTabs';
 import Instructions from './components/Instructions';
@@ -25,6 +25,8 @@ function App() {
     const [selectedViewFile, setSelectedViewFile] = useState(null);
     const [fileContent, setFileContent] = useState('');
     const { setLoading } = useLoading();
+    const [sidebarWidth, setSidebarWidth] = useState(288);
+    const isResizing = useRef(false);
 
     useEffect(() => {
         const loadLastSession = async () => {
@@ -306,6 +308,69 @@ function App() {
         );
     };
 
+    useEffect(() => {
+        const handleMouseMove = (e) => {
+            if (!isResizing.current) return;
+
+            const newWidth = e.clientX;
+            // Limit the minimum and maximum width
+            if (newWidth >= 200 && newWidth <= 600) {
+                setSidebarWidth(newWidth);
+            }
+        };
+
+        const handleMouseUp = () => {
+            isResizing.current = false;
+            document.body.classList.remove('resize-x');
+        };
+
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mouseup', handleMouseUp);
+
+        return () => {
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
+        };
+    }, []);
+
+    const startResizing = () => {
+        isResizing.current = true;
+        document.body.classList.add('resize-x');
+    };
+
+    // Load sidebar width from cache on initial load
+    useEffect(() => {
+        const loadSidebarWidth = async () => {
+            try {
+                const uiSettings = await cache.loadUISettings();
+                if (uiSettings.sidebarWidth) {
+                    setSidebarWidth(uiSettings.sidebarWidth);
+                }
+            } catch (error) {
+                console.error('Error loading sidebar width:', error);
+            }
+        };
+
+        loadSidebarWidth();
+    }, []);
+
+    // Save sidebar width to cache when it changes
+    useEffect(() => {
+        const saveSidebarWidth = async () => {
+            try {
+                await cache.saveUISettings({
+                    sidebarWidth
+                });
+            } catch (error) {
+                console.error('Error saving sidebar width:', error);
+            }
+        };
+
+        // Debounce the save operation
+        const timeoutId = setTimeout(saveSidebarWidth, 500);
+        return () => clearTimeout(timeoutId);
+    }, [sidebarWidth]);
+
     return (
         <div className="h-screen flex flex-col overflow-hidden">
             <Titlebar />
@@ -318,11 +383,22 @@ function App() {
 
             <div className="flex-1 flex overflow-hidden">
                 {/* Left sidebar - File tree */}
-                <div className="w-72 border-r border-gray-800 flex flex-col overflow-hidden">
+                <div
+                    className="border-r border-gray-800 flex flex-col overflow-hidden flex-shrink-0"
+                    style={{ width: sidebarWidth }}
+                >
                     <FileTabs activeTab={activeTab} onTabChange={setActiveTab} />
                     <div className="flex-1 overflow-y-auto">
                         {renderFileView()}
                     </div>
+                </div>
+
+                {/* Resize handle */}
+                <div
+                    className="w-1 hover:bg-blue-500/50 cursor-col-resize relative group"
+                    onMouseDown={startResizing}
+                >
+                    <div className="absolute inset-y-0 -left-2 right-2 group-hover:bg-blue-500/20" />
                 </div>
 
                 {/* Main content */}

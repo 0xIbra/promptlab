@@ -9,6 +9,14 @@ export const cache = {
         return await ipcRenderer.invoke('save-global-settings', settings);
     },
 
+    async loadUISettings() {
+        return await ipcRenderer.invoke('load-ui-settings');
+    },
+
+    async saveUISettings(settings) {
+        return await ipcRenderer.invoke('save-ui-settings', settings);
+    },
+
     async loadRepoData(repoPath) {
         return await ipcRenderer.invoke('load-repo-data', repoPath);
     },
