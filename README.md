@@ -87,8 +87,6 @@ This will trigger the GitHub Actions workflow that:
 - Creates a new GitHub release
 - Uploads all build artifacts to the release
 
-## Contributing
-Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
