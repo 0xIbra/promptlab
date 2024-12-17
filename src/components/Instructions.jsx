@@ -12,6 +12,10 @@ function Instructions({ value, onChange, activeTab, onTabChange, selectedFile, f
     const textareaRef = useRef(null);
     const selectorRef = useRef(null);
     const [activeTemplates, setActiveTemplates] = useState([]);
+    const [height, setHeight] = useState(256);
+    const isResizing = useRef(false);
+    const startY = useRef(0);
+    const startHeight = useRef(0);
 
     useEffect(() => {
         const loadTemplates = async () => {
@@ -20,6 +24,42 @@ function Instructions({ value, onChange, activeTab, onTabChange, selectedFile, f
         };
         loadTemplates();
     }, []);
+
+    // Load height from cache on initial load
+    useEffect(() => {
+        const loadHeight = async () => {
+            try {
+                const uiSettings = await ipcRenderer.invoke('load-ui-settings');
+                if (uiSettings.instructionsHeight) {
+                    setHeight(uiSettings.instructionsHeight);
+                }
+            } catch (error) {
+                console.error('Error loading instructions height:', error);
+            }
+        };
+
+        loadHeight();
+    }, []);
+
+    // Save height to cache when it changes
+    useEffect(() => {
+        const saveHeight = async () => {
+            try {
+                const uiSettings = await ipcRenderer.invoke('load-ui-settings');
+                const newSettings = {
+                    ...uiSettings,
+                    instructionsHeight: height
+                };
+                await ipcRenderer.invoke('save-ui-settings', newSettings);
+            } catch (error) {
+                console.error('Error saving instructions height:', error);
+            }
+        };
+
+        // Debounce the save operation
+        const timeoutId = setTimeout(saveHeight, 500);
+        return () => clearTimeout(timeoutId);
+    }, [height]);
 
     // Close template selector when clicking outside
     useEffect(() => {
@@ -134,39 +174,88 @@ function Instructions({ value, onChange, activeTab, onTabChange, selectedFile, f
         template.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
+    useEffect(() => {
+        const handleMouseMove = (e) => {
+            if (!isResizing.current) return;
+
+            const dy = e.clientY - startY.current;
+            const newHeight = Math.max(150, Math.min(600, startHeight.current + dy));
+            setHeight(newHeight);
+        };
+
+        const handleMouseUp = () => {
+            if (isResizing.current) {
+                isResizing.current = false;
+                document.body.classList.remove('resize-y');
+            }
+        };
+
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mouseup', handleMouseUp);
+
+        return () => {
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
+        };
+    }, []);
+
+    const startResizing = (e) => {
+        isResizing.current = true;
+        startY.current = e.clientY;
+        startHeight.current = height;
+        document.body.classList.add('resize-y');
+    };
+
     return (
         <div className="border-b border-gray-800">
             <div className="relative">
                 {activeTab === 'instructions' && renderActiveTemplates()}
 
-                {activeTab === 'instructions' ? (
-                    <textarea
-                        ref={textareaRef}
-                        id="instructions-textarea"
-                        value={value}
-                        onChange={(e) => onChange(e.target.value)}
-                        placeholder="Enter your instructions here..."
-                        className="w-full h-64 bg-transparent p-4 text-sm resize-none focus:outline-none"
-                    />
-                ) : (
-                    <div className="h-64 overflow-auto">
-                        {selectedFile ? (
-                            <div className="p-4">
-                                <div className="flex items-center gap-2 mb-3 text-sm text-gray-400">
-                                    <DocumentIcon className="w-4 h-4" />
-                                    <span>{selectedFile}</span>
+                <div style={{ height: `${height}px` }} className="relative">
+                    {activeTab === 'instructions' ? (
+                        <textarea
+                            ref={textareaRef}
+                            id="instructions-textarea"
+                            value={value}
+                            onChange={(e) => onChange(e.target.value)}
+                            placeholder="Enter your instructions here..."
+                            className="w-full h-full bg-transparent p-4 text-sm resize-none focus:outline-none"
+                            onKeyDown={handleKeyDown}
+                        />
+                    ) : (
+                        <div className="h-full overflow-auto">
+                            {selectedFile ? (
+                                <div className="p-4">
+                                    <div className="flex items-center gap-2 mb-3 text-sm text-gray-400">
+                                        <DocumentIcon className="w-4 h-4" />
+                                        <span>{selectedFile}</span>
+                                    </div>
+                                    <pre className="font-mono text-sm whitespace-pre-wrap text-gray-300 bg-gray-800/30 p-4 rounded-lg">
+                                        {fileContent || 'Loading...'}
+                                    </pre>
                                 </div>
-                                <pre className="font-mono text-sm whitespace-pre-wrap text-gray-300 bg-gray-800/30 p-4 rounded-lg">
-                                    {fileContent || 'Loading...'}
-                                </pre>
-                            </div>
-                        ) : (
-                            <div className="h-full flex items-center justify-center text-sm text-gray-500">
-                                Select a file to view its contents
-                            </div>
-                        )}
+                            ) : (
+                                <div className="h-full flex items-center justify-center text-sm text-gray-500">
+                                    Select a file to view its contents
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Resize handle */}
+                    <div
+                        className="absolute bottom-0 left-0 right-0 cursor-row-resize group"
+                        onMouseDown={startResizing}
+                    >
+                        {/* Visual indicator line */}
+                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-16 h-0.5
+                            bg-gray-600/50 rounded-full group-hover:bg-blue-500/50 transition-colors duration-200" />
+
+                        {/* Hover area */}
+                        <div className="absolute -bottom-1 left-0 right-0 h-2 group-hover:bg-blue-500/10
+                            transition-colors duration-200" />
                     </div>
-                )}
+                </div>
 
                 {/* Template Quick Selector */}
                 {showTemplateSelector && (

@@ -275,14 +275,15 @@ ipcMain.handle('update-recent-repos', async (event, repoPath) => {
 // Add a new handler specifically for UI settings
 ipcMain.handle('load-ui-settings', async () => {
     const settings = store.get('uiSettings', {
-        sidebarWidth: 288 // Default width
+        sidebarWidth: 288, // Default width
+        instructionsHeight: 256 // Default height
     });
     return settings;
 });
 
 ipcMain.handle('save-ui-settings', async (event, settings) => {
     // Only allow specific UI-related settings
-    const allowedKeys = ['sidebarWidth'];
+    const allowedKeys = ['sidebarWidth', 'instructionsHeight'];
     const sanitizedSettings = {};
 
     for (const key of allowedKeys) {
@@ -291,10 +292,16 @@ ipcMain.handle('save-ui-settings', async (event, settings) => {
         }
     }
 
-    store.set('uiSettings', {
-        ...store.get('uiSettings', {}),
+    // Get current settings
+    const currentSettings = store.get('uiSettings', {});
+
+    // Merge and save
+    const newSettings = {
+        ...currentSettings,
         ...sanitizedSettings
-    });
+    };
+
+    store.set('uiSettings', newSettings);
 });
 
 ipcMain.handle('load-templates', async () => {

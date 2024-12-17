@@ -123,3 +123,18 @@ textarea::placeholder {
 .resize-x * {
     user-select: none;
 }
+
+/* Cursor styles for vertical resizing */
+.resize-y {
+    cursor: row-resize !important;
+    user-select: none;
+}
+
+.resize-y * {
+    user-select: none;
+}
+
+/* Optional: Add a subtle transition for smooth height changes */
+#instructions-textarea {
+    transition: height 0.1s ease-out;
+}
