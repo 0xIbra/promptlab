@@ -352,8 +352,58 @@ ipcMain.handle('read-file', async (event, filePath) => {
     }
 });
 
-// Add this new IPC handler
-ipcMain.handle('generate-prompt', async (event, { selectedFiles, instructions, activeTemplates, currentRepo }) => {
+// Modify the generateFileTree function to only include selected files
+async function generateFileTree(rootPath, selectedFiles) {
+    const tree = {};
+
+    // Helper to add a path to the tree
+    const addToTree = (pathParts, isFile = false) => {
+        let current = tree;
+        pathParts.forEach((part, index) => {
+            if (!current[part]) {
+                current[part] = {
+                    isFile: isFile && index === pathParts.length - 1,
+                    children: {}
+                };
+            }
+            current = current[part].children;
+        });
+    };
+
+    // Add all selected files and their parent directories to the tree
+    selectedFiles.forEach(file => {
+        const pathParts = file.path.split('/');
+
+        // Add all parent directories
+        for (let i = 1; i <= pathParts.length; i++) {
+            addToTree(pathParts.slice(0, i), i === pathParts.length);
+        }
+    });
+
+    // Helper to render the tree structure
+    const renderTree = (node, prefix = '', isLast = true, parentPrefix = '') => {
+        let result = '';
+        const entries = Object.entries(node);
+
+        entries.forEach(([name, data], index) => {
+            const isLastEntry = index === entries.length - 1;
+            const newPrefix = parentPrefix + (isLast ? '    ' : '│   ');
+
+            result += `${prefix}${isLastEntry ? '└── ' : '├── '}${name}${data.isFile ? '' : '/'}\n`;
+
+            if (!data.isFile && Object.keys(data.children).length > 0) {
+                result += renderTree(data.children, newPrefix + '', isLastEntry, newPrefix);
+            }
+        });
+
+        return result;
+    };
+
+    return renderTree(tree);
+}
+
+// Update the generate-prompt handler
+ipcMain.handle('generate-prompt', async (event, { selectedFiles, instructions, activeTemplates, currentRepo, includeFileTree = false }) => {
     try {
         const sections = [];
 
@@ -367,12 +417,24 @@ ipcMain.handle('generate-prompt', async (event, { selectedFiles, instructions, a
             sections.push(`Instructions:\n${instructions.trim()}\n---`);
         }
 
+        // Add file tree if requested (now only for selected files)
+        if (includeFileTree && selectedFiles?.length > 0) {
+            try {
+                const fileTree = await generateFileTree(currentRepo, selectedFiles.filter(f => f.selected));
+                sections.push(`Project Structure:\n\`\`\`\n${fileTree}\`\`\`\n---`);
+            } catch (error) {
+                console.error('Error generating file tree:', error);
+                sections.push('Error generating project structure\n---');
+            }
+        }
+
+        sections.push("=== codebase ===")
+
+        // Rest of the function remains the same...
         const getFileContent = async (filePath) => {
             const fullPath = path.join(currentRepo, filePath);
             const content = await fs.readFile(fullPath, 'utf-8');
-
-            const text = `${filePath}\n\`\`\`\n${content}\n\`\`\``;
-            return text;
+            return `${filePath}\n\`\`\`\n${content}\n\`\`\``;
         };
 
         // Add file contents
@@ -394,8 +456,7 @@ ipcMain.handle('generate-prompt', async (event, { selectedFiles, instructions, a
             }
         }
 
-        let text = `=== codebase ===\n${sections.join('\n\n')}`;
-        return text;
+        return sections.join('\n\n');
     } catch (error) {
         console.error('Error generating prompt:', error);
         throw error;
