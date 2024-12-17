@@ -1,26 +1,54 @@
-import React from 'react';
-import { XMarkIcon, MinusIcon, ArrowsPointingOutIcon } from '@heroicons/react/24/outline';
+import React, { useState, useEffect } from 'react';
+import { XMarkIcon, MinusIcon, ArrowsPointingOutIcon, ArrowsPointingInIcon } from '@heroicons/react/24/outline';
 
 function Titlebar() {
-    const electron = window.require('electron');
+    const [isMaximized, setIsMaximized] = useState(false);
+    const [windowControls, setWindowControls] = useState(null);
+
+    useEffect(() => {
+        try {
+            const remote = window.require('@electron/remote');
+            const win = remote.getCurrentWindow();
+            setWindowControls({ remote, window: win });
+
+            const updateMaximizedState = () => {
+                setIsMaximized(win.isMaximized());
+            };
+
+            win.on('maximize', () => setIsMaximized(true));
+            win.on('unmaximize', () => setIsMaximized(false));
+
+            // Initial state
+            updateMaximizedState();
+
+            return () => {
+                win.removeAllListeners('maximize');
+                win.removeAllListeners('unmaximize');
+            };
+        } catch (error) {
+            console.error('Failed to initialize window controls:', error);
+        }
+    }, []);
 
     const handleClose = () => {
-        window.close();
+        if (windowControls) {
+            windowControls.window.close();
+        }
     };
 
     const handleMinimize = () => {
-        const remote = window.require('@electron/remote');
-        const window = remote.getCurrentWindow();
-        window.minimize();
+        if (windowControls) {
+            windowControls.window.minimize();
+        }
     };
 
     const handleMaximize = () => {
-        const remote = window.require('@electron/remote');
-        const window = remote.getCurrentWindow();
-        if (window.isMaximized()) {
-            window.unmaximize();
-        } else {
-            window.maximize();
+        if (windowControls) {
+            if (isMaximized) {
+                windowControls.window.unmaximize();
+            } else {
+                windowControls.window.maximize();
+            }
         }
     };
 
@@ -35,21 +63,28 @@ function Titlebar() {
             <div className="flex items-center space-x-4 z-10">
                 <button
                     onClick={handleMinimize}
-                    className="hover:bg-gray-700 p-1 rounded"
+                    className="hover:bg-gray-700 p-1 rounded transition-colors duration-200"
+                    title="Minimize"
                 >
                     <MinusIcon className="w-4 h-4" />
                 </button>
 
                 <button
                     onClick={handleMaximize}
-                    className="hover:bg-gray-700 p-1 rounded"
+                    className="hover:bg-gray-700 p-1 rounded transition-colors duration-200"
+                    title={isMaximized ? "Restore" : "Maximize"}
                 >
-                    <ArrowsPointingOutIcon className="w-4 h-4" />
+                    {isMaximized ? (
+                        <ArrowsPointingInIcon className="w-4 h-4" />
+                    ) : (
+                        <ArrowsPointingOutIcon className="w-4 h-4" />
+                    )}
                 </button>
 
                 <button
                     onClick={handleClose}
-                    className="hover:bg-red-600 p-1 rounded"
+                    className="hover:bg-red-600 p-1 rounded transition-colors duration-200"
+                    title="Close"
                 >
                     <XMarkIcon className="w-4 h-4" />
                 </button>

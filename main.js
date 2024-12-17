@@ -1,5 +1,6 @@
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
-require('@electron/remote/main').initialize();
+const remote = require('@electron/remote/main');
+remote.initialize();
 const path = require('path');
 const fs = require('fs').promises;
 const { encode } = require('gpt-tokenizer');
@@ -50,7 +51,7 @@ function createWindow() {
         transparent: process.platform !== 'linux'
     });
 
-    require('@electron/remote/main').enable(win.webContents);
+    remote.enable(win.webContents);
     win.loadFile('index.html');
 
     // Enable dev tools

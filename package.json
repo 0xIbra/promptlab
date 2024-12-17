@@ -33,6 +33,7 @@
     "webpack-cli": "^5.1.4"
   },
   "dependencies": {
+    "@electron/remote": "^2.0.10",
     "@heroicons/react": "^2.0.18",
     "gpt-tokenizer": "^2.1.2",
     "glob": "^10.3.3",
