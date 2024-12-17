@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ClipboardDocumentIcon, XMarkIcon, EyeIcon } from '@heroicons/react/24/outline';
+import { ClipboardDocumentIcon, XMarkIcon, EyeIcon, FolderIcon } from '@heroicons/react/24/outline';
 const { ipcRenderer } = window.require('electron');
 
 function CopyButton({ selectedFiles, instructions, activeTemplates }) {
@@ -52,17 +52,31 @@ function CopyButton({ selectedFiles, instructions, activeTemplates }) {
     return (
         <>
             <div className="fixed bottom-6 right-6 flex items-center gap-3">
-                <label className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-800/80
-                    backdrop-blur-sm border border-gray-700/50">
-                    <input
-                        type="checkbox"
-                        checked={includeFileTree}
-                        onChange={(e) => setIncludeFileTree(e.target.checked)}
-                        className="form-checkbox h-4 w-4 text-blue-500 rounded border-gray-600
-                            focus:ring-blue-500 focus:ring-offset-gray-800"
+                <button
+                    onClick={() => setIncludeFileTree(!includeFileTree)}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg
+                        backdrop-blur-sm border transition-all duration-200
+                        ${includeFileTree
+                            ? 'bg-blue-500/20 border-blue-500/50 text-blue-100 hover:bg-blue-500/30'
+                            : 'bg-gray-800/80 border-gray-700/50 text-gray-400 hover:bg-gray-700/80 hover:text-gray-300'}`}
+                >
+                    <div className={`w-4 h-4 rounded border flex items-center justify-center
+                        transition-all duration-200
+                        ${includeFileTree
+                            ? 'bg-blue-500 border-blue-500'
+                            : 'border-gray-600'}`}
+                    >
+                        {includeFileTree && (
+                            <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                        )}
+                    </div>
+                    <FolderIcon className={`w-4 h-4 transition-colors duration-200
+                        ${includeFileTree ? 'text-blue-300' : 'text-gray-500'}`}
                     />
-                    <span className="text-sm text-gray-300">Include File Tree</span>
-                </label>
+                    <span className="text-sm">File Structure</span>
+                </button>
 
                 <button
                     onClick={handlePreview}
