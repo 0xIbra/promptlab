@@ -74,6 +74,19 @@ body {
     animation: fadeIn 0.3s ease-out;
 }
 
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
 /* Custom components */
 .file-card {
     @apply bg-gray-800/30 hover:bg-gray-800/50 backdrop-blur-sm

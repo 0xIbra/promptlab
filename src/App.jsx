@@ -9,6 +9,7 @@ import FilterModal from './components/FilterModal';
 import { cache } from './services/cache';
 import { DocumentIcon } from '@heroicons/react/24/outline';
 import { countFileTokens } from './services/tokenizer';
+import { useLoading } from './context/LoadingContext';
 const { ipcRenderer } = window.require('electron');
 const path = window.require('path');
 const fs = window.require('fs').promises;
@@ -23,9 +24,11 @@ function App() {
     const [activeMainTab, setActiveMainTab] = useState('instructions');
     const [selectedViewFile, setSelectedViewFile] = useState(null);
     const [fileContent, setFileContent] = useState('');
+    const { setLoading } = useLoading();
 
     useEffect(() => {
         const loadLastSession = async () => {
+            setLoading(true, 'Loading last session...');
             try {
                 const settings = await cache.loadGlobalSettings();
                 if (settings.lastOpenedRepo) {
@@ -53,6 +56,8 @@ function App() {
                 setFilters([]);
                 setSelectedFiles([]);
                 setInstructions('');
+            } finally {
+                setLoading(false);
             }
         };
 
@@ -87,37 +92,42 @@ function App() {
     const handleFolderSelect = async () => {
         const electron = window.require('electron');
         const { ipcRenderer } = electron;
-        const paths = await ipcRenderer.invoke('select-folder');
 
-        if (paths && paths.length > 0) {
-            const selectedPath = paths[0];
+        setLoading(true, 'Opening folder...');
+        try {
+            const paths = await ipcRenderer.invoke('select-folder');
+            if (paths && paths.length > 0) {
+                const selectedPath = paths[0];
 
-            try {
-                // Load cached data for this repo first
-                const repoData = await cache.loadRepoData(selectedPath);
+                try {
+                    // Load cached data for this repo first
+                    const repoData = await cache.loadRepoData(selectedPath);
 
-                setCurrentPath(selectedPath);
-                setFilters(repoData.filters || []);
-                setInstructions(repoData.instructions || '');
+                    setCurrentPath(selectedPath);
+                    setFilters(repoData.filters || []);
+                    setInstructions(repoData.instructions || '');
 
-                // Get filtered files from backend using the repo's filters
-                const cleanFilters = (repoData.filters || []).filter(f => f && !f.startsWith('#'));
-                const files = await ipcRenderer.invoke('read-directory', selectedPath, cleanFilters);
+                    // Get filtered files from backend using the repo's filters
+                    const cleanFilters = (repoData.filters || []).filter(f => f && !f.startsWith('#'));
+                    const files = await ipcRenderer.invoke('read-directory', selectedPath, cleanFilters);
 
-                // Map the files to include selected state
-                const fileObjects = files.map(file => ({
-                    ...file,
-                    selected: (repoData.selectedFiles || []).includes(file.path)
-                }));
+                    // Map the files to include selected state
+                    const fileObjects = files.map(file => ({
+                        ...file,
+                        selected: (repoData.selectedFiles || []).includes(file.path)
+                    }));
 
-                setSelectedFiles(fileObjects);
+                    setSelectedFiles(fileObjects);
 
-                await cache.saveGlobalSettings({
-                    lastOpenedRepo: selectedPath
-                });
-            } catch (error) {
-                console.error('Error loading folder:', error);
+                    await cache.saveGlobalSettings({
+                        lastOpenedRepo: selectedPath
+                    });
+                } catch (error) {
+                    console.error('Error loading folder:', error);
+                }
             }
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -140,6 +150,7 @@ function App() {
 
     const handleSaveFilters = async (newFilters) => {
         if (currentPath) {
+            setLoading(true, 'Applying filters...');
             try {
                 // Clean up filters - remove empty lines and comments for file filtering
                 const cleanFilters = newFilters.filter(f => f && !f.startsWith('#'));
@@ -165,31 +176,38 @@ function App() {
                 });
             } catch (error) {
                 console.error('Error applying filters:', error);
+            } finally {
+                setLoading(false);
             }
         }
     };
 
     const handleSelectAll = async () => {
-        const filesToUpdate = selectedFiles.filter(f => !f.selected && !f.tokens);
+        setLoading(true, 'Processing files...');
+        try {
+            const filesToUpdate = selectedFiles.filter(f => !f.selected && !f.tokens);
 
-        setSelectedFiles(prev =>
-            prev.map(f => ({ ...f, selected: true }))
-        );
+            setSelectedFiles(prev =>
+                prev.map(f => ({ ...f, selected: true }))
+            );
 
-        // Count tokens for newly selected files
-        const tokenPromises = filesToUpdate.map(async (file) => ({
-            path: file.path,
-            tokens: await countFileTokens(file.path, fs, path, currentPath)
-        }));
+            // Count tokens for newly selected files
+            const tokenPromises = filesToUpdate.map(async (file) => ({
+                path: file.path,
+                tokens: await countFileTokens(file.path, fs, path, currentPath)
+            }));
 
-        const tokenResults = await Promise.all(tokenPromises);
+            const tokenResults = await Promise.all(tokenPromises);
 
-        setSelectedFiles(prev =>
-            prev.map(f => ({
-                ...f,
-                tokens: tokenResults.find(r => r.path === f.path)?.tokens || f.tokens
-            }))
-        );
+            setSelectedFiles(prev =>
+                prev.map(f => ({
+                    ...f,
+                    tokens: tokenResults.find(r => r.path === f.path)?.tokens || f.tokens
+                }))
+            );
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleUnselectAll = () => {
