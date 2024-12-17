@@ -1,6 +1,6 @@
 {
   "name": "repo-prompter",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Code repo prompt builder, bridge between your code and your favorite LLM chat.",
   "main": "./main.js",
   "scripts": {
