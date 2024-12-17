@@ -29,9 +29,9 @@ Here is how you should structure the XML:
             <file_summary>**BRIEF CHANGE SUMMARY HERE**</file_summary>
             <file_operation>**FILE OPERATION HERE**</file_operation>
             <file_path>**FILE PATH HERE**</file_path>
-            <file_code>
-                <![CDATA[ __FULL FILE CODE HERE__ ]]>
-            </file_code>
+            <file_code><![CDATA[
+__FULL FILE CODE HERE__
+]]></file_code>
         </file>
         **REMAINING FILES HERE**
     </changed_files>
