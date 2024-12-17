@@ -187,7 +187,6 @@ async function countTokens(filePath) {
     try {
         // First check if it's a text file
         if (!await isTextFile(filePath)) {
-            console.log(`Skipping token count for non-text file: ${filePath}`);
             return 0;
         }
 
@@ -379,13 +378,6 @@ ipcMain.handle('read-file', async (event, filePath) => {
         if (!fullPath.startsWith(currentRepo)) {
             throw new Error('Invalid file path');
         }
-
-        // Log paths for debugging
-        console.log('Reading file:', {
-            currentRepo,
-            filePath,
-            fullPath
-        });
 
         const content = await fs.readFile(fullPath, 'utf-8');
         return content;

@@ -10,14 +10,6 @@ const formatTokenCount = (count) => {
 };
 
 function FileTree({ files, currentPath, onFileSelect, onFileView }) {
-    console.log('FileTree received:', {
-        filesType: typeof files,
-        isArray: Array.isArray(files),
-        filesLength: files?.length,
-        files,
-        currentPath
-    });
-
     // Early return if no files
     if (!files || files.length === 0) {
         return (
@@ -27,7 +19,6 @@ function FileTree({ files, currentPath, onFileSelect, onFileView }) {
         );
     }
 
-    console.log('FileTree render:', { files, currentPath });
     const [expandedFolders, setExpandedFolders] = useState(new Set());
     const [searchQuery, setSearchQuery] = useState('');
     const [previousExpandedState, setPreviousExpandedState] = useState(null);
