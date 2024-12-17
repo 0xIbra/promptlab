@@ -498,6 +498,7 @@ ipcMain.handle('apply-code-changes', async (event, changes) => {
                     await fs.writeFile(fullPath, change.code);
                     break;
 
+                case 'update':
                 case 'modify':
                     await fs.writeFile(fullPath, change.code);
                     break;
