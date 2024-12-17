@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { FolderIcon, DocumentIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
+import React, { useState, useMemo } from 'react';
+import { FolderIcon, DocumentIcon, ChevronRightIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 
 const formatTokenCount = (count) => {
     if (count < 1000) return count.toString();
@@ -29,6 +29,75 @@ function FileTree({ files, currentPath, onFileSelect, onFileView }) {
 
     console.log('FileTree render:', { files, currentPath });
     const [expandedFolders, setExpandedFolders] = useState(new Set());
+    const [searchQuery, setSearchQuery] = useState('');
+    const [previousExpandedState, setPreviousExpandedState] = useState(null);
+
+    const filteredFiles = useMemo(() => {
+        if (!searchQuery.trim()) {
+            if (previousExpandedState) {
+                setExpandedFolders(previousExpandedState);
+                setPreviousExpandedState(null);
+            }
+            return files;
+        }
+
+        if (!previousExpandedState) {
+            setPreviousExpandedState(new Set(expandedFolders));
+        }
+
+        // Get all folder paths from files
+        const folderPaths = new Set();
+        files.forEach(file => {
+            const parts = file.path.split('/');
+            parts.pop(); // Remove filename
+
+            let currentPath = '';
+            parts.forEach(part => {
+                currentPath = currentPath ? `${currentPath}/${part}` : part;
+                folderPaths.add(currentPath);
+            });
+        });
+
+        const searchLower = searchQuery.toLowerCase();
+
+        // Match files and folders
+        const matchingFiles = files.filter(file => {
+            // Check if file matches
+            if (file.path.toLowerCase().includes(searchLower)) {
+                return true;
+            }
+
+            // Check if any parent folder matches
+            const parts = file.path.split('/');
+            parts.pop(); // Remove filename
+
+            let currentPath = '';
+            for (const part of parts) {
+                currentPath = currentPath ? `${currentPath}/${part}` : part;
+                if (part.toLowerCase().includes(searchLower)) {
+                    return true;
+                }
+            }
+
+            return false;
+        });
+
+        // Get all parent folders for matching files
+        const parentFolders = new Set();
+        matchingFiles.forEach(file => {
+            const parts = file.path.split('/');
+            parts.pop();
+
+            let currentPath = '';
+            parts.forEach(part => {
+                currentPath = currentPath ? `${currentPath}/${part}` : part;
+                parentFolders.add(currentPath);
+            });
+        });
+
+        setExpandedFolders(new Set(parentFolders));
+        return matchingFiles;
+    }, [files, searchQuery]);
 
     const toggleFolder = (path) => {
         setExpandedFolders(prev => {
@@ -237,9 +306,27 @@ function FileTree({ files, currentPath, onFileSelect, onFileView }) {
     const tree = buildTree(files, files);
 
     return (
-        <div className="p-2">
-            <div className="text-sm text-gray-400 px-2 py-1">Repository</div>
-            {renderTree(tree)}
+        <div className="flex flex-col h-full">
+            <div className="p-2">
+                <div className="relative">
+                    <MagnifyingGlassIcon className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input
+                        type="text"
+                        placeholder="Search files..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full pl-9 pr-3 py-2 bg-gray-900/50 rounded-lg border border-gray-700/50
+                            text-sm focus:outline-none focus:border-blue-500/50 transition-colors duration-200"
+                    />
+                </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto">
+                <div className="p-2">
+                    <div className="text-sm text-gray-400 px-2 py-1">Repository</div>
+                    {buildTree(filteredFiles, filteredFiles) && renderTree(buildTree(filteredFiles, filteredFiles))}
+                </div>
+            </div>
         </div>
     );
 }
