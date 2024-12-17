@@ -1,6 +1,14 @@
 import React, { useState } from 'react';
 import { FolderIcon, DocumentIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 
+const formatTokenCount = (count) => {
+    if (count < 1000) return count.toString();
+    if (count < 1000000) {
+        return (count / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
+    }
+    return (count / 1000000).toFixed(1).replace(/\.0$/, '') + 'm';
+};
+
 function FileTree({ files, currentPath, onFileSelect, onFileView }) {
     console.log('FileTree received:', {
         filesType: typeof files,
@@ -164,7 +172,7 @@ function FileTree({ files, currentPath, onFileSelect, onFileView }) {
                         </div>
 
                         <div
-                            className={`flex items-center gap-3 flex-1 min-h-[24px] ${!isFolder && !isTextFile ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                            className={`flex items-center min-w-0 flex-1 ${!isFolder && !isTextFile ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                             onClick={() => {
                                 if (isFolder) {
                                     toggleFolder(fullPath);
@@ -173,32 +181,36 @@ function FileTree({ files, currentPath, onFileSelect, onFileView }) {
                                 }
                             }}
                         >
-                            {isFolder && (
-                                <ChevronRightIcon
-                                    className={`w-5 h-5 transition-transform ${
-                                        isExpanded ? 'transform rotate-90' : ''
-                                    }`}
-                                />
-                            )}
-                            {isFolder ? (
-                                <FolderIcon className="w-5 h-5 text-gray-400" />
-                            ) : (
-                                <DocumentIcon className="w-5 h-5 text-gray-400" />
-                            )}
-                            <span className="text-sm text-gray-300">{name}</span>
-                            {!isFolder && (
-                                <>
-                                    {!isTextFile && (
-                                        <span className="text-xs text-gray-500">(binary file)</span>
-                                    )}
-                                    {isTextFile && data.tokens > 0 && (
-                                        <span className="text-xs text-gray-500">
-                                            {data.tokens.toLocaleString()} tokens
-                                        </span>
-                                    )}
-                                </>
-                            )}
+                            <div className="flex items-center gap-3 min-w-0">
+                                {isFolder && (
+                                    <ChevronRightIcon
+                                        className={`w-5 h-5 flex-shrink-0 transition-transform ${
+                                            isExpanded ? 'transform rotate-90' : ''
+                                        }`}
+                                    />
+                                )}
+                                {isFolder ? (
+                                    <FolderIcon className="w-5 h-5 flex-shrink-0 text-gray-400" />
+                                ) : (
+                                    <DocumentIcon className="w-5 h-5 flex-shrink-0 text-gray-400" />
+                                )}
+                                <span className="text-sm text-gray-300 truncate">{name}</span>
+                            </div>
                         </div>
+
+                        {!isFolder && (
+                            <div className="flex-shrink-0 flex items-center gap-2">
+                                {!isTextFile ? (
+                                    <span className="text-[11px] text-gray-500">(binary)</span>
+                                ) : data.tokens > 0 && (
+                                    <div className="px-2 py-0.5 rounded-full bg-gray-800/50 border border-gray-700/50">
+                                        <span className="text-[11px] text-gray-400">
+                                            {formatTokenCount(data.tokens)}
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
                     {isFolder && isExpanded && (
                         renderTree(data.children, fullPath + '/', level + 1)
