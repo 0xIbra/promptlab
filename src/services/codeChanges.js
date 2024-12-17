@@ -9,7 +9,7 @@ const parseXML = (xmlString) => {
 
 const getNodeText = (node, tagName) => {
     const element = node.getElementsByTagName(tagName)[0];
-    return element ? element.textContent : '';
+    return element ? element.textContent.trim() : '';
 };
 
 // Main code changes service
@@ -17,7 +17,8 @@ export const codeChanges = {
     async applyChanges(xmlString) {
         try {
             const xmlDoc = parseXML(xmlString);
-            const changedFiles = xmlDoc.getElementsByTagName('file');
+            // Get all file nodes under changed_files
+            const changedFiles = xmlDoc.querySelector('changed_files').getElementsByTagName('file');
 
             const changes = [];
             for (const fileNode of changedFiles) {
@@ -25,7 +26,8 @@ export const codeChanges = {
                     summary: getNodeText(fileNode, 'file_summary'),
                     operation: getNodeText(fileNode, 'file_operation'),
                     path: getNodeText(fileNode, 'file_path'),
-                    code: getNodeText(fileNode, 'file_code')
+                    // Extract CDATA content properly
+                    code: fileNode.querySelector('file_code')?.firstChild?.data?.trim() || ''
                 };
                 changes.push(change);
             }
