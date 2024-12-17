@@ -112,6 +112,16 @@ function FileTree({ files, currentPath, onFileSelect, onFileView }) {
         return tree;
     };
 
+    const calculateFolderTokens = (node) => {
+        if (node.isFile) {
+            return node.tokens || 0;
+        }
+
+        return Object.values(node.children).reduce((sum, child) =>
+            sum + calculateFolderTokens(child), 0
+        );
+    };
+
     const renderTree = (node, path = '', level = 0) => {
         const entries = Object.entries(node);
         const folders = entries.filter(([_, data]) => !data.isFile);
@@ -134,6 +144,8 @@ function FileTree({ files, currentPath, onFileSelect, onFileView }) {
 
             const isPartial = isFolder && isPartiallySelected(data);
             const isTextFile = fileEntry?.isText;
+
+            const totalTokens = isFolder ? calculateFolderTokens(data) : data.tokens;
 
             return (
                 <div key={fullPath} style={{ paddingLeft: `${level * 20}px` }}>
@@ -198,17 +210,13 @@ function FileTree({ files, currentPath, onFileSelect, onFileView }) {
                             </div>
                         </div>
 
-                        {!isFolder && (
-                            <div className="flex-shrink-0 flex items-center gap-2">
-                                {!isTextFile ? (
-                                    <span className="text-[11px] text-gray-500">(binary)</span>
-                                ) : data.tokens > 0 && (
-                                    <div className="px-2 py-0.5 rounded-full bg-gray-800/50 border border-gray-700/50">
-                                        <span className="text-[11px] text-gray-400">
-                                            {formatTokenCount(data.tokens)}
-                                        </span>
-                                    </div>
-                                )}
+                        {(isFolder || isTextFile) && totalTokens > 0 && (
+                            <div className="flex-shrink-0">
+                                <div className="px-2 py-0.5 rounded-full bg-gray-800/50 border border-gray-700/50">
+                                    <span className="text-[11px] text-gray-400">
+                                        {formatTokenCount(totalTokens)}
+                                    </span>
+                                </div>
                             </div>
                         )}
                     </div>

@@ -184,28 +184,12 @@ function App() {
         }
     };
 
-    const handleSelectAll = async () => {
-        setLoading(true, 'Processing files...');
+    const handleSelectAll = () => {
+        setLoading(true, 'Selecting all files...');
         try {
-            const filesToUpdate = selectedFiles.filter(f => !f.selected && !f.tokens);
-
+            // Simply mark all text files as selected
             setSelectedFiles(prev =>
                 prev.map(f => ({ ...f, selected: true }))
-            );
-
-            // Count tokens for newly selected files
-            const tokenPromises = filesToUpdate.map(async (file) => ({
-                path: file.path,
-                tokens: await countFileTokens(file.path, fs, path, currentPath)
-            }));
-
-            const tokenResults = await Promise.all(tokenPromises);
-
-            setSelectedFiles(prev =>
-                prev.map(f => ({
-                    ...f,
-                    tokens: tokenResults.find(r => r.path === f.path)?.tokens || f.tokens
-                }))
             );
         } finally {
             setLoading(false);
