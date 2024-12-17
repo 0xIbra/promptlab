@@ -1,55 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import { XMarkIcon, AdjustmentsHorizontalIcon } from '@heroicons/react/24/outline';
 
-const DEFAULT_IGNORE_PATTERNS = [
-    // Common
-    '# Common',
-    'node_modules',
-    'dist',
-    'build',
-    '.next',
-    '.vite',
-    '.git',
-    '.env',
-    '.env.*',
-    '',
+function FilterModal({ isOpen, onClose, currentPath, onSave }) {
+    const [filters, setFilters] = useState('');
+    const [isLoading, setIsLoading] = useState(true);
 
-    // Python
-    '# Python',
-    '__pycache__',
-    'venv',
-    '*.pyc',
+    useEffect(() => {
+        const loadFilters = async () => {
+            if (isOpen && currentPath) {
+                setIsLoading(true);
+                try {
+                    const { ipcRenderer } = window.require('electron');
+                    const repoData = await ipcRenderer.invoke('load-repo-data', currentPath);
 
-    // IDE
-    '# IDE',
-    '.idea',
-    '.vscode',
+                    // This will now get either the custom filters for this repo or the defaults
+                    const activeFilters = repoData.filters;
+                    setFilters(activeFilters.join('\n'));
+                } catch (error) {
+                    console.error('Error loading filters:', error);
+                } finally {
+                    setIsLoading(false);
+                }
+            }
+        };
 
-
-    // System
-    '# System',
-    '.DS_Store',
-    'Thumbs.db',
-];
-
-const formatFiltersWithComments = (activeFilters) => {
-    // If user has previously set filters (even if empty), use those
-    if (activeFilters !== undefined) {
-        return activeFilters.join('\n');
-    }
-
-    // Only use default patterns when there's no previous user configuration
-    return DEFAULT_IGNORE_PATTERNS.join('\n');
-};
-
-function FilterModal({ isOpen, onClose, currentPath, onSave, initialFilters }) {
-    const [filters, setFilters] = useState(formatFiltersWithComments(initialFilters));
+        loadFilters();
+    }, [isOpen, currentPath]);
 
     const handleSave = () => {
         const filterList = filters
             .split('\n')
-            .map(line => line.trim())
-            .filter(line => line && !line.startsWith('#'));
+            .map(line => line.trim());
         onSave(filterList);
         onClose();
     };
@@ -60,12 +41,6 @@ function FilterModal({ isOpen, onClose, currentPath, onSave, initialFilters }) {
             handleSave();
         }
     };
-
-    useEffect(() => {
-        if (isOpen) {
-            setFilters(formatFiltersWithComments(initialFilters));
-        }
-    }, [isOpen, initialFilters]);
 
     if (!isOpen) return null;
 
@@ -103,14 +78,16 @@ function FilterModal({ isOpen, onClose, currentPath, onSave, initialFilters }) {
 
                         <div className="space-y-2">
                             <textarea
-                                value={filters}
+                                value={isLoading ? 'Loading...' : filters}
                                 onChange={(e) => setFilters(e.target.value)}
                                 onKeyDown={handleKeyDown}
+                                disabled={isLoading}
                                 placeholder={`# Temp files\n**/tmp\n**/temp\n\n# Project specific\n**/node_modules\n**/dist`}
-                                className="w-full h-64 bg-gray-900/50 p-4 rounded-lg text-sm font-mono
+                                className={`w-full h-64 bg-gray-900/50 p-4 rounded-lg text-sm font-mono
                                     resize-none border border-gray-700/50 placeholder-gray-600
                                     focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50
-                                    transition-all duration-200"
+                                    transition-all duration-200
+                                    ${isLoading ? 'opacity-50' : ''}`}
                             />
                             <div className="flex items-center gap-2 text-xs text-gray-500">
                                 <kbd className="px-2 py-1 rounded-md bg-gray-800/50 border border-gray-700/50">

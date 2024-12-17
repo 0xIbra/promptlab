@@ -6,6 +6,36 @@ const { encode } = require('gpt-tokenizer');
 const Store = require('electron-store');
 const store = new Store();
 
+const DEFAULT_IGNORE_PATTERNS = [
+    // Common
+    '# Common',
+    'node_modules',
+    'dist',
+    'build',
+    '.next',
+    '.vite',
+    '.git',
+    '.env',
+    '.env.*',
+    '',
+
+    // Python
+    '# Python',
+    '__pycache__',
+    'venv',
+    '*.pyc',
+
+    // IDE
+    '# IDE',
+    '.idea',
+    '.vscode',
+
+    // System
+    '# System',
+    '.DS_Store',
+    'Thumbs.db',
+];
+
 function createWindow() {
     const win = new BrowserWindow({
         width: 1200,
@@ -78,36 +108,6 @@ function isFileIgnoredWithFilters(filePath, filtersList) {
         }
     });
 }
-
-const DEFAULT_IGNORE_PATTERNS = [
-    // Common
-    '# Common',
-    'node_modules',
-    'dist',
-    'build',
-    '.next',
-    '.vite',
-    '.git',
-    '.env',
-    '.env.*',
-    '.serverless',
-
-    // Python
-    '# Python',
-    '__pycache__',
-    'venv',
-    '*.pyc',
-
-    // IDE
-    '# IDE',
-    '.idea',
-    '.vscode',
-
-    // System
-    '# System',
-    '.DS_Store',
-    'Thumbs.db'
-];
 
 async function isTextFile(filePath) {
     try {
@@ -243,6 +243,14 @@ ipcMain.handle('save-global-settings', async (event, settings) => {
 
 ipcMain.handle('load-repo-data', async (event, repoPath) => {
     const repoData = store.get(`repos.${repoPath}`, {});
+
+    // Initialize filters with defaults if they don't exist
+    // This ensures each repo starts with default filters but can be customized
+    if (!repoData.filters) {
+        repoData.filters = DEFAULT_IGNORE_PATTERNS;
+        store.set(`repos.${repoPath}`, repoData);
+    }
+
     return repoData;
 });
 

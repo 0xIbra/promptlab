@@ -100,7 +100,7 @@ function App() {
                 setFilters(repoData.filters || []);
                 setInstructions(repoData.instructions || '');
 
-                // Get filtered files from backend
+                // Get filtered files from backend using the repo's filters
                 const cleanFilters = (repoData.filters || []).filter(f => f && !f.startsWith('#'));
                 const files = await ipcRenderer.invoke('read-directory', selectedPath, cleanFilters);
 
@@ -140,26 +140,28 @@ function App() {
 
     const handleSaveFilters = async (newFilters) => {
         if (currentPath) {
-            // Clean up filters - remove empty lines and comments
-            const cleanFilters = newFilters.filter(f => f && !f.startsWith('#'));
-
             try {
+                // Clean up filters - remove empty lines and comments for file filtering
+                const cleanFilters = newFilters.filter(f => f && !f.startsWith('#'));
+
                 // Get filtered files from backend
                 const files = await ipcRenderer.invoke('read-directory', currentPath, cleanFilters);
 
-                // Update state
-                setFilters(newFilters); // Keep original filters including comments
+                // Update state with the full filters (including comments)
+                setFilters(newFilters);
                 setSelectedFiles(files.map(file => ({
                     ...file,
                     selected: false
                 })));
 
-                // Update cache
+                // Save the full filters to cache for this repo
+                const repoData = await cache.loadRepoData(currentPath);
                 await cache.saveRepoData(currentPath, {
-                    filters: newFilters,
+                    ...repoData,
+                    filters: newFilters,  // Save the complete filter list including comments
                     lastOpened: new Date().toISOString(),
                     selectedFiles: [],
-                    instructions
+                    instructions: instructions
                 });
             } catch (error) {
                 console.error('Error applying filters:', error);
@@ -328,7 +330,6 @@ function App() {
                 onClose={() => setIsFilterModalOpen(false)}
                 currentPath={currentPath}
                 onSave={handleSaveFilters}
-                initialFilters={filters}
             />
         </div>
     );
