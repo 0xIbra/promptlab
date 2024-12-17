@@ -296,3 +296,11 @@ ipcMain.handle('save-ui-settings', async (event, settings) => {
         ...sanitizedSettings
     });
 });
+
+ipcMain.handle('load-templates', async () => {
+    return store.get('templates', []);
+});
+
+ipcMain.handle('save-templates', async (event, templates) => {
+    store.set('templates', templates);
+});

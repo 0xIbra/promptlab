@@ -363,6 +363,8 @@ function App() {
                 onOpenFilters={handleOpenFilters}
                 onSelectAll={handleSelectAll}
                 onUnselectAll={handleUnselectAll}
+                activeTab={activeMainTab}
+                onTabChange={setActiveMainTab}
             />
 
             <div className="flex-1 flex overflow-hidden">
