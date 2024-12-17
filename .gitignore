@@ -28,6 +28,7 @@ dist-ssr
 release/
 dist/
 build/
+out/
 
 # Environment files
 .env
@@ -39,3 +40,21 @@ dist_electron/
 # System files
 .DS_Store
 Thumbs.db
+
+# Platform-specific build artifacts
+*.exe
+*.dmg
+*.AppImage
+*.deb
+*.snap
+*.rpm
+*.msi
+*.pkg
+*.zip
+*.tar.gz
+*.tgz
+
+# Cache directories
+.cache/
+.webpack/
+.electron-builder/

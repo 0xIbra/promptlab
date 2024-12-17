@@ -30,6 +30,12 @@ chmod +x RepoPrompter-*.AppImage
 sudo dpkg -i repo-prompter_*.deb
 ```
 
+### Windows
+Download and run the latest `.exe` installer from the [releases page](https://github.com/0xIbra/repo-prompter/releases).
+
+### macOS
+Download and install the latest `.dmg` file from the [releases page](https://github.com/0xIbra/repo-prompter/releases).
+
 ## Development
 
 ### Prerequisites
@@ -61,6 +67,20 @@ npm run build
 # Create distributable
 npm run dist
 ```
+
+### Creating Releases
+
+1. Update version in `package.json`
+2. Create and push a new tag:
+```bash
+git tag v0.1.1
+git push origin v0.1.1
+```
+
+This will trigger the GitHub Actions workflow that:
+- Builds the app for Linux, Windows, and macOS
+- Creates a new GitHub release
+- Uploads all build artifacts to the release
 
 ## Contributing
 Contributions are welcome! Please feel free to submit a Pull Request.
