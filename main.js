@@ -456,7 +456,13 @@ ipcMain.handle('generate-prompt', async (event, { selectedFiles, instructions, a
             }
         }
 
-        return sections.join('\n\n');
+        const finalText = sections.join('\n\n');
+        const tokenCount = encode(finalText).length;
+
+        return {
+            text: finalText,
+            tokens: tokenCount
+        };
     } catch (error) {
         console.error('Error generating prompt:', error);
         throw error;

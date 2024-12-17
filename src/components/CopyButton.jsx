@@ -7,6 +7,7 @@ function CopyButton({ selectedFiles, instructions, activeTemplates }) {
     const [isCopying, setIsCopying] = useState(false);
     const [showPreview, setShowPreview] = useState(false);
     const [previewContent, setPreviewContent] = useState('');
+    const [tokenCount, setTokenCount] = useState(0);
 
     const generatePrompt = async () => {
         const currentRepo = await ipcRenderer.invoke('load-global-settings')
@@ -16,13 +17,16 @@ function CopyButton({ selectedFiles, instructions, activeTemplates }) {
             throw new Error('No repository is currently open');
         }
 
-        return await ipcRenderer.invoke('generate-prompt', {
+        const result = await ipcRenderer.invoke('generate-prompt', {
             selectedFiles: selectedFiles.filter(f => f.selected),
             instructions,
             activeTemplates,
             currentRepo,
             includeFileTree
         });
+
+        setTokenCount(result.tokens);
+        return result.text;
     };
 
     const handleCopy = async () => {
@@ -108,9 +112,16 @@ function CopyButton({ selectedFiles, instructions, activeTemplates }) {
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
                     <div className="bg-gradient-dark rounded-xl w-[800px] max-h-[80vh] shadow-2xl border border-gray-800/50 flex flex-col">
                         <div className="flex items-center justify-between p-4 border-b border-gray-800/50">
-                            <h2 className="text-lg font-medium bg-gradient-to-r from-gray-100 to-gray-300 text-transparent bg-clip-text">
-                                Preview
-                            </h2>
+                            <div className="flex items-center gap-4">
+                                <h2 className="text-lg font-medium bg-gradient-to-r from-gray-100 to-gray-300 text-transparent bg-clip-text">
+                                    Preview
+                                </h2>
+                                <div className="px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20">
+                                    <span className="text-sm text-blue-300">
+                                        {tokenCount.toLocaleString()} tokens
+                                    </span>
+                                </div>
+                            </div>
                             <button
                                 onClick={() => setShowPreview(false)}
                                 className="p-1 hover:bg-gray-800/50 rounded-lg transition-colors duration-200"
@@ -123,26 +134,31 @@ function CopyButton({ selectedFiles, instructions, activeTemplates }) {
                                 {previewContent || 'Loading preview...'}
                             </pre>
                         </div>
-                        <div className="p-4 border-t border-gray-800/50 flex justify-end gap-2">
-                            <button
-                                onClick={() => setShowPreview(false)}
-                                className="px-4 py-2 rounded-lg hover:bg-gray-800/50
-                                    text-gray-300 transition-colors duration-200"
-                            >
-                                Close
-                            </button>
-                            <button
-                                onClick={handleCopy}
-                                disabled={isCopying}
-                                className={`flex items-center gap-2 px-4 py-2 rounded-lg
-                                    ${isCopying
-                                        ? 'bg-green-500/20 text-green-300'
-                                        : 'bg-blue-500 hover:bg-blue-600 text-white'}
-                                    transition-all duration-200`}
-                            >
-                                <ClipboardDocumentIcon className="w-5 h-5" />
-                                <span>{isCopying ? 'Copied!' : 'Copy to Clipboard'}</span>
-                            </button>
+                        <div className="p-4 border-t border-gray-800/50 flex justify-between items-center">
+                            <div className="text-sm text-gray-500">
+                                Estimated cost: ${((tokenCount / 1000) * 0.002).toFixed(4)}
+                            </div>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => setShowPreview(false)}
+                                    className="px-4 py-2 rounded-lg hover:bg-gray-800/50
+                                        text-gray-300 transition-colors duration-200"
+                                >
+                                    Close
+                                </button>
+                                <button
+                                    onClick={handleCopy}
+                                    disabled={isCopying}
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-lg
+                                        ${isCopying
+                                            ? 'bg-green-500/20 text-green-300'
+                                            : 'bg-blue-500 hover:bg-blue-600 text-white'}
+                                        transition-all duration-200`}
+                                >
+                                    <ClipboardDocumentIcon className="w-5 h-5" />
+                                    <span>{isCopying ? 'Copied!' : 'Copy to Clipboard'}</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
