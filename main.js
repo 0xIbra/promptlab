@@ -44,10 +44,20 @@ const DEFAULT_IGNORE_PATTERNS = [
     'Thumbs.db',
 ];
 
+// Near the top with other store initialization
+const DEFAULT_WINDOW_BOUNDS = {
+    width: 1400,
+    height: 800,
+    x: undefined,
+    y: undefined
+};
+
 function createWindow() {
+    // Get stored window bounds
+    const windowBounds = store.get('windowBounds', DEFAULT_WINDOW_BOUNDS);
+
     const win = new BrowserWindow({
-        width: 1400,
-        height: 800,
+        ...windowBounds,
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false,
@@ -62,8 +72,35 @@ function createWindow() {
         icon: path.join(__dirname, 'assets/icons/256x256.png')
     });
 
+    // Save window position and size when it changes
+    ['move', 'resize'].forEach(event => {
+        win.on(event, () => {
+            if (!win.isMaximized()) {
+                const bounds = win.getBounds();
+                store.set('windowBounds', bounds);
+            }
+        });
+    });
+
+    // Save maximized state
+    win.on('maximize', () => {
+        store.set('windowMaximized', true);
+    });
+
+    win.on('unmaximize', () => {
+        store.set('windowMaximized', false);
+        // Save current bounds after unmaximize
+        const bounds = win.getBounds();
+        store.set('windowBounds', bounds);
+    });
+
     remote.enable(win.webContents);
     win.loadFile('index.html');
+
+    // Restore maximized state if it was maximized when closed
+    if (store.get('windowMaximized', false)) {
+        win.maximize();
+    }
 
     return win;
 }
