@@ -1,12 +1,14 @@
 {
   "name": "repo-prompter",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Code repo prompt builder, bridge between your code and your favorite LLM chat.",
   "main": "./main.js",
   "scripts": {
     "start": "electron .",
     "dev": "concurrently \"webpack --mode development --watch\" \"electron . --inspect\"",
-    "build": "webpack --mode production"
+    "build": "webpack --mode production",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
   },
   "keywords": [
     "electron",
@@ -14,7 +16,8 @@
     "llm",
     "chatgpt"
   ],
-  "author": "0xIbra",
+  "author": "0xIbra <dev@0xibra.dev>",
+  "maintainer": "0xIbra <dev@0xibra.dev>",
   "license": "MIT",
   "devDependencies": {
     "@babel/core": "^7.22.9",
@@ -25,6 +28,9 @@
     "concurrently": "^8.2.0",
     "css-loader": "^6.8.1",
     "electron": "^25.3.0",
+    "electron-builder": "^24.6.4",
+    "electron-log": "^4.4.8",
+    "electron-updater": "^6.1.4",
     "postcss": "^8.4.27",
     "postcss-loader": "^7.3.3",
     "style-loader": "^3.3.3",
@@ -40,5 +46,34 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "electron-store": "^8.1.0"
+  },
+  "build": {
+    "appId": "com.repoprompter.app",
+    "productName": "Repo Prompter",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "main.js",
+      "index.html",
+      "package.json",
+      "assets/**/*"
+    ],
+    "linux": {
+      "target": ["AppImage", "deb"],
+      "category": "Development",
+      "icon": "assets/icon.png",
+      "maintainer": "0xIbra <dev@0xibra.dev>",
+      "synopsis": "Code repository prompt builder for LLMs",
+      "description": "A desktop application for preparing and formatting code repositories for LLM prompts."
+    },
+    "deb": {
+      "depends": ["gconf2", "gconf-service", "libnotify4", "libappindicator1", "libxtst6", "libnss3"]
+    },
+    "publish": {
+      "provider": "github",
+      "releaseType": "release"
+    }
   }
 }

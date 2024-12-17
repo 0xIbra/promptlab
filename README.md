@@ -1,33 +1,75 @@
 # Repo Prompter
 
-## Overview
-Repo Prompter is an Electron-based desktop application that allows users to select a folder and view its contents in a structured file tree. The application provides a user-friendly interface for managing files and directories, making it easier to navigate and select files.
+A powerful desktop application for preparing and formatting code repositories for LLM prompts. Built with Electron and React.
+
+![Repo Prompter Screenshot](assets/screenshot.png)
 
 ## Features
-- **Folder Selection**: Users can select a directory from their file system.
-- **File Tree View**: Displays the contents of the selected folder in a hierarchical structure.
-- **Instructions Panel**: A dedicated area for displaying instructions or notes related to the selected files.
-- **Selected Files Display**: Shows a list of files that the user has selected from the file tree.
 
-## Technologies Used
-- **Electron**: For building cross-platform desktop applications with web technologies.
-- **React**: For building the user interface.
-- **Node.js**: For backend operations and file system interactions.
+- 📁 Open and analyze any code repository
+- 🔍 Select specific files or entire directories
+- 🚫 Customizable ignore patterns with regex support
+- 📝 Add custom instructions and save templates
+- 🌳 Generate textual file tree visualization
+- 📋 Copy formatted output to clipboard
+- 🔢 Automatic token counting for LLM context limits
 
-## File Structure
-- `main.js`: The main process of the Electron application, responsible for creating the application window and handling file system operations.
-- `index.html`: The HTML file that serves as the entry point for the application.
-- `src/index.jsx`: The entry point for the React application, rendering the main `App` component.
-- `src/App.jsx`: The main React component that manages the application state and renders the UI components.
+## Installation
 
-## Getting Started
-1. Clone the repository.
-2. Install the dependencies using `npm install`.
-3. Run the application using `npm start`.
+### Linux
+Download the latest `.AppImage` or `.deb` file from the [releases page](https://github.com/0xIbra/repo-prompter/releases).
+
+#### AppImage
+```bash
+chmod +x RepoPrompter-*.AppImage
+./RepoPrompter-*.AppImage
+```
+
+#### Debian/Ubuntu
+```bash
+sudo dpkg -i repo-prompter_*.deb
+```
+
+## Development
+
+### Prerequisites
+- Node.js 16+
+- npm or yarn
+
+### Setup
+1. Clone the repository
+```bash
+git clone https://github.com/0xIbra/repo-prompter.git
+cd repo-prompter
+```
+
+2. Install dependencies
+```bash
+npm install
+```
+
+3. Start development server
+```bash
+npm run dev
+```
+
+### Building
+```bash
+# Build for production
+npm run build
+
+# Create distributable
+npm run dist
+```
+
+## Contributing
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
-This project is licensed under the MIT License.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Acknowledgments
-- Thanks to the Electron and React communities for their contributions and support.
+- Built with [Electron](https://www.electronjs.org/)
+- UI powered by [React](https://reactjs.org/) and [Tailwind CSS](https://tailwindcss.com/)
+- Token counting by [gpt-tokenizer](https://www.npmjs.com/package/gpt-tokenizer)
 

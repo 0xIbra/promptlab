@@ -1,11 +1,18 @@
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const remote = require('@electron/remote/main');
+const { autoUpdater } = require('electron-updater');
+const log = require('electron-log');
 remote.initialize();
 const path = require('path');
 const fs = require('fs').promises;
 const { encode } = require('gpt-tokenizer');
 const Store = require('electron-store');
 const store = new Store();
+
+// Configure logging
+log.transports.file.level = 'info';
+autoUpdater.logger = log;
+log.info('App starting...');
 
 const DEFAULT_IGNORE_PATTERNS = [
     // Common
@@ -44,21 +51,57 @@ function createWindow() {
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false,
-            enableRemoteModule: true
+            enableRemoteModule: true,
+            webSecurity: true,
+            allowRunningInsecureContent: false,
+            experimentalFeatures: false
         },
         backgroundColor: '#111827',
         frame: false,
-        transparent: process.platform !== 'linux'
+        transparent: process.platform !== 'linux',
+        icon: path.join(__dirname, 'assets', 'icon.png')
     });
 
     remote.enable(win.webContents);
     win.loadFile('index.html');
 
-    // Enable dev tools
-    // win.webContents.openDevTools();
+    return win;
 }
 
-app.whenReady().then(createWindow);
+// Auto-updater events
+autoUpdater.on('checking-for-update', () => {
+    log.info('Checking for update...');
+});
+
+autoUpdater.on('update-available', (info) => {
+    log.info('Update available:', info);
+});
+
+autoUpdater.on('update-not-available', (info) => {
+    log.info('Update not available:', info);
+});
+
+autoUpdater.on('error', (err) => {
+    log.error('Error in auto-updater:', err);
+});
+
+autoUpdater.on('download-progress', (progressObj) => {
+    let logMessage = `Download speed: ${progressObj.bytesPerSecond}`;
+    logMessage = `${logMessage} - Downloaded ${progressObj.percent}%`;
+    logMessage = `${logMessage} (${progressObj.transferred}/${progressObj.total})`;
+    log.info(logMessage);
+});
+
+autoUpdater.on('update-downloaded', (info) => {
+    log.info('Update downloaded:', info);
+    // Install on next restart
+    autoUpdater.quitAndInstall(false, true);
+});
+
+app.whenReady().then(() => {
+    createWindow();
+    autoUpdater.checkForUpdatesAndNotify();
+});
 
 // File system handlers
 ipcMain.handle('select-folder', async () => {
