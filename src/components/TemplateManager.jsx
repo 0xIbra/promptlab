@@ -10,7 +10,6 @@ You will respond with 2 sections: A summary section and an XML section.
 Here are some notes on how you should respond in the summary section:
 - Provide a brief overall summary
 - Provide a 1-sentence summary for each file changed and why.
-- Provide a 1-sentence summary for each file deleted and why.
 - Format this section as markdown.
 
 Here are some notes on how you should respond in the XML section:
@@ -30,9 +29,9 @@ Here is how you should structure the XML:
             <file_summary>**BRIEF CHANGE SUMMARY HERE**</file_summary>
             <file_operation>**FILE OPERATION HERE**</file_operation>
             <file_path>**FILE PATH HERE**</file_path>
-            <file_code><![CDATA[
-__FULL FILE CODE HERE__
-]]></file_code>
+            <file_code>
+                <![CDATA[ __FULL FILE CODE HERE__ ]]>
+            </file_code>
         </file>
         **REMAINING FILES HERE**
     </changed_files>
