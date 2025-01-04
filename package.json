@@ -1,6 +1,6 @@
 {
   "name": "promptlab",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "A desktop laboratory for crafting code-based prompts for LLMs.",
   "main": "./main.js",
   "scripts": {
