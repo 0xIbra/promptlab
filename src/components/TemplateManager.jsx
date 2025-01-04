@@ -1,10 +1,7 @@
-export const DEFAULT_TEMPLATES = [
-    {
-        name: "XML Response Format",
-        content: `<meta_prompt>
-You are an expert software engineer.
-You are tasked with following my instructions.
-Use the included project instructions as a general guide.
+const defaultTemplate = `<meta_prompt>
+Your task is to follow to the best of your ability the instructions of the user.
+
+Use the included project structure as a general guide.
 You will respond with 2 sections: A summary section and an XML section.
 
 Here are some notes on how you should respond in the summary section:
@@ -21,6 +18,7 @@ Here are some notes on how you should respond in the XML section:
 - Include the full file path
 - I am going to copy/paste that entire XML section into a parser to automatically apply the changes you made, so put the XML block inside a markdown codeblock.
 - Make sure to enclose the code with ![CDATA[__CODE HERE__]]
+- Be sure to close the <file_code> tag with </file_code> after the code.
 
 Here is how you should structure the XML:
 <code_changes>
@@ -41,7 +39,14 @@ So the XML section will be:
 \`\`\`xml
 __XML HERE__
 \`\`\`
-</meta_prompt>`,
+</meta_prompt>
+`
+
+
+export const DEFAULT_TEMPLATES = [
+    {
+        name: "Parseable XML Response",
+        content: defaultTemplate,
         isDefault: true
     }
 ];
@@ -63,9 +68,10 @@ function TemplateManager({ templates, onSave, onInsert, onClose }) {
     };
 
     const handleDeleteTemplate = (index) => {
-        if (allTemplates[index].isDefault) return;
+        if (index < DEFAULT_TEMPLATES.length) return;
 
-        const updatedTemplates = templates.filter((_, i) => i !== index);
+        const templateIndex = index - DEFAULT_TEMPLATES.length;
+        const updatedTemplates = templates.filter((_, i) => i !== templateIndex);
         onSave(updatedTemplates);
     };
 
