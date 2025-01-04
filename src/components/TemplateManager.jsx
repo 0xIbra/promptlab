@@ -123,7 +123,7 @@ function TemplateManager({ templates, onSave, onInsert, onClose }) {
                     </div>
 
                     {/* Template Grid */}
-                    <div className="grid grid-cols-2 gap-4 max-h-[200vh] overflow-y-auto pr-2">
+                    <div className="grid grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-2">
                         {filteredTemplates.map((template, index) => (
                             <div
                                 key={index}
