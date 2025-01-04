@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import FileTree from './components/FileTree';
 import FileTabs from './components/FileTabs';
 import Instructions from './components/Instructions';
@@ -12,6 +12,7 @@ import { countFileTokens } from './services/tokenizer';
 import { useLoading } from './context/LoadingContext';
 import CopyButton from './components/CopyButton';
 import CodeChangesModal from './components/CodeChangesModal';
+import { encode } from 'gpt-tokenizer';
 const { ipcRenderer } = window.require('electron');
 const path = window.require('path');
 const fs = window.require('fs').promises;
@@ -31,6 +32,14 @@ function App() {
     const isResizing = useRef(false);
     const [activeTemplates, setActiveTemplates] = useState([]);
     const [isChangesModalOpen, setIsChangesModalOpen] = useState(false);
+
+    // Memoize token calculations for instructions and templates
+    const additionalTokens = useMemo(() => {
+        const instructionsTokens = instructions ? encode(instructions).length : 0;
+        const templateTokens = activeTemplates.reduce((sum, template) =>
+            sum + (template.content ? encode(template.content).length : 0), 0);
+        return instructionsTokens + templateTokens;
+    }, [instructions, activeTemplates]);
 
     useEffect(() => {
         const loadLastSession = async () => {
@@ -413,6 +422,7 @@ function App() {
                     <div className="flex-1 overflow-y-auto">
                         <SelectedFiles
                             files={selectedFiles.filter(f => f.selected)}
+                            additionalTokens={additionalTokens}
                         />
                     </div>
                 </div>

@@ -1,9 +1,13 @@
 import React, { useMemo } from 'react';
 import { DocumentIcon, FolderIcon } from '@heroicons/react/24/outline';
 
-function SelectedFiles({ files }) {
-    // Only count tokens from text files
-    const totalTokens = files.reduce((sum, file) => sum + (file.isText ? (file.tokens || 0) : 0), 0);
+function SelectedFiles({ files, additionalTokens = 0 }) {
+    // Calculate total tokens including pre-calculated additional tokens
+    const totalTokens = useMemo(() => {
+        // Count tokens from text files
+        const fileTokens = files.reduce((sum, file) => sum + (file.isText ? (file.tokens || 0) : 0), 0);
+        return fileTokens + additionalTokens;
+    }, [files, additionalTokens]);
 
     // Group and sort files
     const { folderGroups, rootFiles } = useMemo(() => {
