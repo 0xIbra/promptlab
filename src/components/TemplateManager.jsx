@@ -84,7 +84,7 @@ function TemplateManager({ templates, onSave, onInsert, onClose }) {
 
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
-            <div className="bg-gradient-dark rounded-xl w-[1000px] max-w-[90vw] shadow-2xl border border-gray-800/50">
+            <div className="bg-gradient-dark rounded-xl w-[1000px] max-w-[90vw] h-[60vh] shadow-2xl border border-gray-800/50">
                 <div className="flex items-center justify-between p-4 border-b border-gray-800/50">
                     <div className="flex items-center gap-2">
                         <TagIcon className="w-5 h-5 text-blue-400" />
@@ -123,7 +123,7 @@ function TemplateManager({ templates, onSave, onInsert, onClose }) {
                     </div>
 
                     {/* Template Grid */}
-                    <div className="grid grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-2">
+                    <div className="grid grid-cols-2 gap-4 max-h-[200vh] overflow-y-auto pr-2">
                         {filteredTemplates.map((template, index) => (
                             <div
                                 key={index}
