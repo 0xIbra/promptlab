@@ -45,6 +45,23 @@ Download and run the latest `.exe` installer from the [releases page](https://gi
 ### macOS
 Download and install the latest `.dmg` file from the [releases page](https://github.com/0xIbra/promptlab/releases).
 
+#### Note for macOS Users
+Since the app is not notarized with Apple, you'll need to follow these steps to run it:
+
+1. After downloading the `.dmg` file, double-click to mount it
+2. Drag the PromptLab app to your Applications folder
+3. Open Terminal and run the following command:
+```bash
+xattr -r -d com.apple.quarantine "/Applications/PromptLab.app"
+```
+
+> **Why is this necessary?**
+> macOS adds a quarantine attribute to applications downloaded from the internet as a security measure. Since PromptLab is not notarized with Apple (which requires an Apple Developer account), we need to manually remove this attribute. This command essentially tells macOS that you trust this application.
+
+⚠️ **Only run this command for applications you trust and have downloaded from a reliable source.**
+
+After running the command, you can open PromptLab normally from your Applications folder. This process only needs to be done once after installation.
+
 ## Development
 
 ### Prerequisites
