@@ -53,17 +53,17 @@ function Titlebar() {
     };
 
     return (
-        <div className="h-10 bg-gray-900 flex items-center justify-between px-4 select-none draggable relative">
+        <div className="h-10 bg-gray-900 flex items-center justify-between pl-4 select-none draggable relative">
             <div className="w-24" />
 
             <div className="absolute left-1/2 transform -translate-x-1/2 text-sm text-gray-400">
                 PromptLab
             </div>
 
-            <div className="flex items-center space-x-4 z-10">
+            <div className="flex items-center z-10">
                 <button
                     onClick={handleMinimize}
-                    className="hover:bg-gray-700 p-1 rounded transition-colors duration-200"
+                    className="hover:bg-gray-700 w-12 h-10 flex items-center justify-center transition-colors duration-200"
                     title="Minimize"
                 >
                     <MinusIcon className="w-4 h-4" />
@@ -71,7 +71,7 @@ function Titlebar() {
 
                 <button
                     onClick={handleMaximize}
-                    className="hover:bg-gray-700 p-1 rounded transition-colors duration-200"
+                    className="hover:bg-gray-700 w-12 h-10 flex items-center justify-center transition-colors duration-200"
                     title={isMaximized ? "Restore" : "Maximize"}
                 >
                     {isMaximized ? (
@@ -83,7 +83,7 @@ function Titlebar() {
 
                 <button
                     onClick={handleClose}
-                    className="hover:bg-red-600 p-1 rounded transition-colors duration-200"
+                    className="hover:bg-red-600 w-12 h-10 flex items-center justify-center transition-colors duration-200"
                     title="Close"
                 >
                     <XMarkIcon className="w-4 h-4" />
