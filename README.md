@@ -1,7 +1,7 @@
 # PromptLab
 
-A powerful desktop laboratory for crafting code-based prompts for LLMs.  
-Allows users to quickly inject their code and craft a prompt with parseable xml format response.  
+A powerful desktop laboratory for crafting code-based prompts for LLMs.
+Allows users to quickly inject their code and craft a prompt with parseable xml format response.
 Works best with reasoning models.
 
 ⚠️ **Note**: This is an experimental project and may have compatibility issues on some operating systems. Provided "as is" without any warranties.
@@ -18,6 +18,10 @@ Works best with reasoning models.
 - 🌳 Generate textual file tree visualization
 - 📋 Copy formatted output to clipboard
 - 🔢 Automatic token counting for LLM context limits
+- 🔄 Apply code changes from XML responses
+- 📑 Template management with default XML response format
+- 🎯 Smart file filtering with search functionality
+- 👀 Built-in file viewer for code inspection
 
 ## Installation
 
