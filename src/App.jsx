@@ -211,9 +211,12 @@ function App() {
     const handleSelectAll = () => {
         setLoading(true, 'Selecting all files...');
         try {
-            // Simply mark all text files as selected
+            // Only mark text files as selected
             setSelectedFiles(prev =>
-                prev.map(f => ({ ...f, selected: true }))
+                prev.map(f => ({
+                    ...f,
+                    selected: f.isText ? true : f.selected
+                }))
             );
         } finally {
             setLoading(false);
