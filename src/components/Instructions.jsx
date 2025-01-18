@@ -163,8 +163,8 @@ function Instructions({
     useEffect(() => {
         const handleMouseMove = (e) => {
             if (!isResizing.current) return;
-            const delta = startY.current - e.clientY;
-            const newHeight = Math.max(150, Math.min(600, startHeight.current + delta));
+            const dy = e.clientY - startY.current;
+            const newHeight = Math.max(150, Math.min(600, startHeight.current + dy));
             setHeight(newHeight);
         };
 
@@ -294,9 +294,17 @@ function Instructions({
             )}
 
             <div
-                className="absolute bottom-0 left-0 right-0 h-1 cursor-row-resize hover:bg-blue-500/30 transition-colors"
+                className="absolute bottom-0 left-0 right-0 cursor-row-resize group"
                 onMouseDown={startResizing}
-            />
+            >
+                {/* Visual indicator line */}
+                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-16 h-0.5
+                    bg-gray-600/50 rounded-full group-hover:bg-blue-500/50 transition-colors duration-200" />
+
+                {/* Hover area */}
+                <div className="absolute -bottom-1 left-0 right-0 h-2 group-hover:bg-blue-500/10
+                    transition-colors duration-200" />
+            </div>
 
             {isTemplateManagerOpen && (
                 <TemplateManager
