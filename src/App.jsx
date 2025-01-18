@@ -36,6 +36,7 @@ function App() {
     const [isChangesModalOpen, setIsChangesModalOpen] = useState(false);
     const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
     const [lastSaved, setLastSaved] = useState('Never');
+    const [isTemplateManagerOpen, setIsTemplateManagerOpen] = useState(false);
 
     // Memoize token calculations for instructions and templates
     const additionalTokens = useMemo(() => {
@@ -397,7 +398,7 @@ function App() {
                 setActiveTab(activeTab === 'tree' ? 'list' : 'tree');
                 break;
             case 'manage-templates':
-                // Add template management logic
+                setIsTemplateManagerOpen(true);
                 break;
             case 'apply-changes':
                 setIsChangesModalOpen(true);
@@ -463,6 +464,9 @@ function App() {
                             fileContent={fileContent}
                             activeTemplates={activeTemplates}
                             setActiveTemplates={setActiveTemplates}
+                            isTemplateManagerOpen={isTemplateManagerOpen}
+                            onTemplateManagerClose={() => setIsTemplateManagerOpen(false)}
+                            onTemplateManagerOpen={() => setIsTemplateManagerOpen(true)}
                         />
                         <div className="flex-1 overflow-y-auto">
                             <SelectedFiles

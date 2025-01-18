@@ -55,7 +55,7 @@ function CopyButton({ selectedFiles, instructions, activeTemplates }) {
 
     return (
         <>
-            <div className="fixed bottom-6 right-6 flex items-center gap-3">
+            <div className="fixed bottom-10 right-6 flex items-center gap-3">
                 <button
                     onClick={() => setIncludeFileTree(!includeFileTree)}
                     className={`flex items-center gap-2 px-3 py-2 rounded-lg

@@ -148,7 +148,10 @@ function TemplateManager({ templates, onSave, onInsert, onClose }) {
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <button
-                                            onClick={() => onInsert(template)}
+                                            onClick={() => {
+                                                onInsert(template);
+                                                onClose();
+                                            }}
                                             className="opacity-0 group-hover:opacity-100 px-2 py-1 text-xs font-medium
                                                 rounded-md bg-blue-500/20 text-blue-400 hover:bg-blue-500/30
                                                 transition-all duration-200"
