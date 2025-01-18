@@ -43,7 +43,7 @@ jobs:
           elif [ "$RUNNER_OS" == "Windows" ]; then
             npm run dist -- --win
           else
-            npm run dist -- --mac
+            npm run dist -- --mac --universal
           fi
         shell: bash
 

@@ -1,6 +1,6 @@
 {
   "name": "promptlab",
-  "version": "0.1.7",
+  "version": "0.1.71",
   "description": "A desktop laboratory for crafting code-based prompts for LLMs.",
   "main": "./main.js",
   "scripts": {
@@ -79,7 +79,10 @@
       "icon": "assets/icons"
     },
     "mac": {
-      "target": ["dmg"],
+      "target": {
+        "target": "dmg",
+        "arch": ["x64", "arm64"]
+      },
       "icon": "assets/icons",
       "category": "public.app-category.developer-tools",
       "hardenedRuntime": true,
