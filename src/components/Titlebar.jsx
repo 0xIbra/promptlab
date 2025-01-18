@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { XMarkIcon, MinusIcon, ArrowsPointingOutIcon, ArrowsPointingInIcon } from '@heroicons/react/24/outline';
+const { version } = require('../../package.json');
+const { ipcRenderer, shell } = window.require('electron');
 
 function Titlebar() {
     const [isMaximized, setIsMaximized] = useState(false);
     const [windowControls, setWindowControls] = useState(null);
     const [isMac, setIsMac] = useState(false);
+    const [updateAvailable, setUpdateAvailable] = useState(null);
 
     useEffect(() => {
         try {
@@ -20,17 +23,45 @@ function Titlebar() {
             win.on('maximize', () => setIsMaximized(true));
             win.on('unmaximize', () => setIsMaximized(false));
 
+            // Listen for update notifications
+            const updateHandler = (_, info) => {
+                console.log('Update available:', info);
+                if (info && info.version) {
+                    // Only show update if it's newer than current version
+                    const currentParts = version.split('.').map(Number);
+                    const newParts = info.version.split('.').map(Number);
+
+                    for (let i = 0; i < 3; i++) {
+                        if ((newParts[i] || 0) > (currentParts[i] || 0)) {
+                            setUpdateAvailable(info);
+                            break;
+                        } else if ((newParts[i] || 0) < (currentParts[i] || 0)) {
+                            break;
+                        }
+                    }
+                }
+            };
+
+            ipcRenderer.on('update-available', updateHandler);
+
             // Initial state
             updateMaximizedState();
 
             return () => {
                 win.removeAllListeners('maximize');
                 win.removeAllListeners('unmaximize');
+                ipcRenderer.removeListener('update-available', updateHandler);
             };
         } catch (error) {
             console.error('Failed to initialize window controls:', error);
         }
     }, []);
+
+    const handleUpdateClick = () => {
+        if (updateAvailable) {
+            shell.openExternal(`https://github.com/0xIbra/promptlab/releases/tag/v${updateAvailable.version}`);
+        }
+    };
 
     const handleClose = () => {
         if (windowControls) {
@@ -90,8 +121,22 @@ function Titlebar() {
                 <div className="w-24" />
             )}
 
-            <div className="absolute left-1/2 transform -translate-x-1/2 text-sm text-gray-400">
-                PromptLab
+            <div className="absolute left-1/2 transform -translate-x-1/2 text-sm text-gray-400 flex items-center gap-2">
+                <span>PromptLab</span>
+                <span className="text-xs text-gray-500">v{version}</span>
+                {updateAvailable && (
+                    <button
+                        onClick={handleUpdateClick}
+                        className="ml-2 px-2 py-0.5 text-xs bg-blue-500/20 text-blue-400 rounded-full hover:bg-blue-500/30 transition-colors duration-200 flex items-center gap-1.5"
+                        title={`Version ${updateAvailable.version} available\n${updateAvailable.releaseNotes || ''}`}
+                    >
+                        <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                        </span>
+                        v{updateAvailable.version} Available
+                    </button>
+                )}
             </div>
 
             {!isMac && (

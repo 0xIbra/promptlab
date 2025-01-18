@@ -14,6 +14,27 @@ log.transports.file.level = 'info';
 autoUpdater.logger = log;
 log.info('PromptLab starting...');
 
+// Configure auto-updater
+autoUpdater.autoDownload = false;
+autoUpdater.allowPrerelease = false;
+autoUpdater.forceDevUpdateConfig = true;
+
+// Set GitHub configuration
+const updateConfig = {
+    provider: 'github',
+    owner: '0xIbra',
+    repo: 'promptlab'
+};
+
+if (!app.isPackaged) {
+    const devConfigPath = path.join(__dirname, 'dev-app-update.yml');
+    autoUpdater.updateConfigPath = devConfigPath;
+} else {
+    autoUpdater.setFeedURL(updateConfig);
+}
+
+log.info('App version:', app.getVersion());
+
 const DEFAULT_IGNORE_PATTERNS = [
     // Common
     '# Common',
@@ -51,6 +72,24 @@ const DEFAULT_WINDOW_BOUNDS = {
     x: undefined,
     y: undefined
 };
+
+// Function to check if webpack bundle exists
+async function waitForWebpackBundle() {
+    const bundlePath = path.join(__dirname, 'dist', 'bundle.js');
+    let attempts = 0;
+    const maxAttempts = 30; // 30 * 100ms = 3 seconds max wait
+
+    while (attempts < maxAttempts) {
+        try {
+            await fs.access(bundlePath);
+            return true;
+        } catch (error) {
+            attempts++;
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+    }
+    return false;
+}
 
 function createWindow() {
     // Get stored window bounds
@@ -95,7 +134,27 @@ function createWindow() {
     });
 
     remote.enable(win.webContents);
-    win.loadFile('index.html');
+
+    // In development, wait for webpack bundle before loading
+    if (!app.isPackaged) {
+        waitForWebpackBundle().then(bundleReady => {
+            if (bundleReady) {
+                win.loadFile('index.html');
+                win.webContents.on('did-finish-load', () => {
+                    checkForUpdates();
+                });
+            } else {
+                log.error('Webpack bundle not found after waiting');
+                win.loadFile('index.html'); // Load anyway, might need refresh
+            }
+        });
+    } else {
+        // In production, load immediately
+        win.loadFile('index.html');
+        win.webContents.on('did-finish-load', () => {
+            checkForUpdates();
+        });
+    }
 
     // Restore maximized state if it was maximized when closed
     if (store.get('windowMaximized', false)) {
@@ -105,39 +164,60 @@ function createWindow() {
     return win;
 }
 
-// Auto-updater events
+// Function to check for updates
+async function checkForUpdates() {
+    try {
+        const result = await autoUpdater.checkForUpdates();
+        if (result?.updateInfo) {
+            log.info('Update available:', {
+                currentVersion: app.getVersion(),
+                newVersion: result.updateInfo.version
+            });
+        }
+    } catch (error) {
+        log.error('Error checking for updates:', error.message);
+    }
+}
+
+// Auto-updater events with minimal logging
 autoUpdater.on('checking-for-update', () => {
-    log.info('Checking for update...');
+    // Silent check
 });
 
 autoUpdater.on('update-available', (info) => {
-    log.info('Update available:', info);
+    // Send update info to renderer
+    BrowserWindow.getAllWindows().forEach(window => {
+        window.webContents.send('update-available', {
+            version: info.version,
+            releaseDate: info.releaseDate,
+            releaseNotes: info.releaseNotes
+        });
+    });
 });
 
-autoUpdater.on('update-not-available', (info) => {
-    log.info('Update not available:', info);
+autoUpdater.on('update-not-available', () => {
+    // Silent when no update
 });
 
 autoUpdater.on('error', (err) => {
-    log.error('Error in auto-updater:', err);
+    log.error('Update error:', err.message);
 });
 
 autoUpdater.on('download-progress', (progressObj) => {
-    let logMessage = `Download speed: ${progressObj.bytesPerSecond}`;
-    logMessage = `${logMessage} - Downloaded ${progressObj.percent}%`;
-    logMessage = `${logMessage} (${progressObj.transferred}/${progressObj.total})`;
-    log.info(logMessage);
+    // Only log every 20% to avoid spam
+    if (Math.round(progressObj.percent) % 20 === 0) {
+        log.info(`Download progress: ${Math.round(progressObj.percent)}%`);
+    }
 });
 
 autoUpdater.on('update-downloaded', (info) => {
-    log.info('Update downloaded:', info);
-    // Install on next restart
-    autoUpdater.quitAndInstall(false, true);
+    log.info('Update downloaded. Will be installed on next restart.');
 });
 
 app.whenReady().then(() => {
     createWindow();
-    autoUpdater.checkForUpdatesAndNotify();
+    // Remove this since we're now checking after window loads
+    // autoUpdater.checkForUpdatesAndNotify();
 });
 
 // File system handlers
@@ -350,18 +430,14 @@ ipcMain.handle('save-repo-data', async (event, repoPath, data) => {
     store.set(`repos.${repoPath}`, data);
 });
 
-ipcMain.handle('update-recent-repos', async (event, repoPath) => {
-    const recentRepos = store.get('recentRepos', []);
-    const updatedRepos = [
-        repoPath,
-        ...recentRepos.filter(repo => repo !== repoPath)
-    ].slice(0, 10); // Keep only last 10 repos
-
-    store.set('recentRepos', updatedRepos);
-    return updatedRepos;
+ipcMain.handle('load-templates', async () => {
+    return store.get('templates', []);
 });
 
-// Add a new handler specifically for UI settings
+ipcMain.handle('save-templates', async (event, templates) => {
+    store.set('templates', templates);
+});
+
 ipcMain.handle('load-ui-settings', async () => {
     const settings = store.get('uiSettings', {
         sidebarWidth: 288, // Default width
@@ -393,209 +469,13 @@ ipcMain.handle('save-ui-settings', async (event, settings) => {
     store.set('uiSettings', newSettings);
 });
 
-ipcMain.handle('load-templates', async () => {
-    return store.get('templates', []);
-});
+ipcMain.handle('update-recent-repos', async (event, repoPath) => {
+    const recentRepos = store.get('recentRepos', []);
+    const updatedRepos = [
+        repoPath,
+        ...recentRepos.filter(repo => repo !== repoPath)
+    ].slice(0, 10); // Keep only last 10 repos
 
-ipcMain.handle('save-templates', async (event, templates) => {
-    store.set('templates', templates);
-});
-
-ipcMain.handle('read-file', async (event, filePath) => {
-    try {
-        const currentRepo = store.get('globalSettings', {}).lastOpenedRepo;
-        if (!currentRepo) {
-            throw new Error('No repository is currently open');
-        }
-
-        // Correctly join the repo path with the relative file path
-        const fullPath = path.join(currentRepo, filePath);
-
-        // Verify the file is within the repo directory (security check)
-        if (!fullPath.startsWith(currentRepo)) {
-            throw new Error('Invalid file path');
-        }
-
-        const content = await fs.readFile(fullPath, 'utf-8');
-        return content;
-    } catch (error) {
-        console.error(`Error reading file ${filePath}:`, error);
-        throw error;
-    }
-});
-
-// Modify the generateFileTree function to only include selected files
-async function generateFileTree(rootPath, selectedFiles) {
-    const tree = {};
-
-    // Helper to add a path to the tree
-    const addToTree = (pathParts, isFile = false) => {
-        let current = tree;
-        pathParts.forEach((part, index) => {
-            if (!current[part]) {
-                current[part] = {
-                    isFile: isFile && index === pathParts.length - 1,
-                    children: {}
-                };
-            }
-            current = current[part].children;
-        });
-    };
-
-    // Add all selected files and their parent directories to the tree
-    selectedFiles.forEach(file => {
-        const pathParts = file.path.split('/');
-
-        // Add all parent directories
-        for (let i = 1; i <= pathParts.length; i++) {
-            addToTree(pathParts.slice(0, i), i === pathParts.length);
-        }
-    });
-
-    // Helper to render the tree structure
-    const renderTree = (node, prefix = '', isLast = true, parentPrefix = '') => {
-        let result = '';
-        const entries = Object.entries(node);
-
-        entries.forEach(([name, data], index) => {
-            const isLastEntry = index === entries.length - 1;
-            const newPrefix = parentPrefix + (isLast ? '    ' : '│   ');
-
-            result += `${prefix}${isLastEntry ? '└── ' : '├── '}${name}${data.isFile ? '' : '/'}\n`;
-
-            if (!data.isFile && Object.keys(data.children).length > 0) {
-                result += renderTree(data.children, newPrefix + '', isLastEntry, newPrefix);
-            }
-        });
-
-        return result;
-    };
-
-    return renderTree(tree);
-}
-
-// Update the generate-prompt handler
-ipcMain.handle('generate-prompt', async (event, { selectedFiles, instructions, activeTemplates, currentRepo, includeFileTree = false }) => {
-    try {
-        const sections = [];
-
-        // Add templates
-        if (activeTemplates?.length > 0) {
-            sections.push(activeTemplates.map(t => t.content).join('\n\n'));
-        }
-
-        // Add instructions
-        if (instructions?.trim()) {
-            sections.push(`Instructions:\n${instructions.trim()}`);
-        }
-
-        sections.push("---")
-        // Add file tree if requested (now only for selected files)
-        if (includeFileTree && selectedFiles?.length > 0) {
-            try {
-                const fileTree = await generateFileTree(currentRepo, selectedFiles.filter(f => f.selected));
-                sections.push(`Project Structure:\n\`\`\`\n${fileTree}\`\`\`\n---`);
-            } catch (error) {
-                console.error('Error generating file tree:', error);
-                sections.push('Error generating project structure\n---');
-            }
-        }
-
-        sections.push("=== codebase ===")
-
-        // Rest of the function remains the same...
-        const getFileContent = async (filePath) => {
-            const fullPath = path.join(currentRepo, filePath);
-            const content = await fs.readFile(fullPath, 'utf-8');
-            return `${filePath}\n\`\`\`\n${content}\n\`\`\``;
-        };
-
-        // Add file contents
-        if (selectedFiles?.length > 0) {
-            for (const file of selectedFiles) {
-                try {
-                    const fullPath = path.join(currentRepo, file.path);
-
-                    // Security check
-                    if (!fullPath.startsWith(currentRepo)) {
-                        throw new Error('Invalid file path');
-                    }
-
-                    sections.push(await getFileContent(file.path));
-                } catch (error) {
-                    console.error(`Error reading file ${file.path}:`, error);
-                    sections.push(`${file.path}\nError reading file: ${error.message}`);
-                }
-            }
-        }
-
-        const finalText = sections.join('\n\n');
-        const tokenCount = encode(finalText).length;
-
-        return {
-            text: finalText,
-            tokens: tokenCount
-        };
-    } catch (error) {
-        console.error('Error generating prompt:', error);
-        throw error;
-    }
-});
-
-ipcMain.handle('apply-code-changes', async (event, changes) => {
-    const currentRepo = store.get('globalSettings', {}).lastOpenedRepo;
-    if (!currentRepo) {
-        throw new Error('No repository is currently open');
-    }
-
-    const results = [];
-    for (const change of changes) {
-        const fullPath = path.join(currentRepo, change.path);
-
-        // Security check - ensure file is within repo
-        if (!fullPath.startsWith(currentRepo)) {
-            results.push({
-                path: change.path,
-                success: false,
-                error: 'Invalid file path'
-            });
-            continue;
-        }
-
-        try {
-            switch (change.operation.toLowerCase()) {
-                case 'create':
-                    // Ensure directory exists
-                    await fs.mkdir(path.dirname(fullPath), { recursive: true });
-                    await fs.writeFile(fullPath, change.code);
-                    break;
-
-                case 'update':
-                case 'modify':
-                    await fs.writeFile(fullPath, change.code);
-                    break;
-
-                case 'delete':
-                    await fs.unlink(fullPath);
-                    break;
-
-                default:
-                    throw new Error(`Unknown operation: ${change.operation}`);
-            }
-
-            results.push({
-                path: change.path,
-                success: true,
-                summary: change.summary
-            });
-        } catch (error) {
-            results.push({
-                path: change.path,
-                success: false,
-                error: error.message
-            });
-        }
-    }
-
-    return results;
+    store.set('recentRepos', updatedRepos);
+    return updatedRepos;
 });

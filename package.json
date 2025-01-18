@@ -101,7 +101,10 @@
     },
     "publish": {
       "provider": "github",
-      "releaseType": "release"
+      "owner": "0xIbra",
+      "repo": "promptlab",
+      "releaseType": "release",
+      "private": false
     }
   }
 }
