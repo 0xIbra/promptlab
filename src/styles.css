@@ -4,56 +4,65 @@
 
 /* Custom gradient backgrounds */
 .bg-gradient-dark {
-    background: linear-gradient(to bottom right, #1a1c2e, #0f1117);
+    background: linear-gradient(165deg, #13151a 0%, #1a1d2d 100%);
 }
 
 .bg-gradient-sidebar {
-    background: linear-gradient(to bottom, rgba(30, 32, 50, 0.7), rgba(15, 17, 23, 0.7));
-    backdrop-filter: blur(12px);
+    background: linear-gradient(to bottom, rgba(26, 28, 35, 0.85), rgba(20, 22, 28, 0.85));
+    backdrop-filter: blur(20px);
+    border-right: 1px solid rgba(255, 255, 255, 0.03);
 }
 
 .bg-gradient-toolbar {
-    background: linear-gradient(to right, rgba(30, 32, 50, 0.5), rgba(15, 17, 23, 0.5));
-    backdrop-filter: blur(8px);
+    background: linear-gradient(to right, rgba(26, 28, 35, 0.9), rgba(20, 22, 28, 0.9));
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
 }
 
 .bg-gradient-button {
-    background: linear-gradient(to right, #3b82f6, #2563eb);
+    background: linear-gradient(to right, #4f46e5, #4338ca);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .bg-gradient-button:hover {
-    background: linear-gradient(to right, #2563eb, #1d4ed8);
+    background: linear-gradient(to right, #4338ca, #3730a3);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 20px -2px rgba(79, 70, 229, 0.3);
 }
 
-/* Glass effect */
+/* Glass effect with improved aesthetics */
 .glass-effect {
-    background: rgba(30, 32, 50, 0.3);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(30, 32, 40, 0.4);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    box-shadow: 0 4px 32px -8px rgba(0, 0, 0, 0.3);
 }
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-    background: transparent;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: rgba(156, 163, 175, 0.3);
-    border-radius: 3px;
+    background: rgba(79, 70, 229, 0.2);
+    border-radius: 4px;
+    transition: all 0.2s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: rgba(156, 163, 175, 0.5);
+    background: rgba(79, 70, 229, 0.4);
 }
 
 /* Base styles */
 body {
     @apply bg-gradient-dark text-gray-100;
+    font-feature-settings: "ss01", "ss02", "cv01", "cv02";
 }
 
 .draggable {
@@ -64,14 +73,20 @@ body {
     -webkit-app-region: no-drag;
 }
 
-/* Animations */
+/* Enhanced animations */
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .animate-fade-in {
-    animation: fadeIn 0.3s ease-out;
+    animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @keyframes spin {
@@ -84,37 +99,41 @@ body {
 }
 
 .animate-spin {
-    animation: spin 1s linear infinite;
+    animation: spin 1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
-/* Custom components */
+/* Custom components with enhanced visuals */
 .file-card {
-    @apply bg-gray-800/30 hover:bg-gray-800/50 backdrop-blur-sm
-           border border-gray-700/30 rounded-lg transition-all duration-200
-           hover:border-gray-600/50 hover:shadow-lg hover:shadow-blue-500/5;
+    @apply bg-gray-800/20 hover:bg-gray-800/30 backdrop-blur-lg
+           border border-gray-700/20 rounded-xl transition-all duration-300
+           hover:border-indigo-500/20 hover:shadow-lg hover:shadow-indigo-500/10
+           hover:translate-y-[-2px];
 }
 
 .button-primary {
-    @apply bg-gradient-button text-white px-4 py-2 rounded-lg
-           shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30
-           transition-all duration-200 font-medium;
+    @apply bg-gradient-button text-white px-5 py-2.5 rounded-xl
+           shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30
+           transition-all duration-300 font-medium tracking-wide
+           active:scale-[0.98];
 }
 
 .button-secondary {
-    @apply bg-gray-800/50 hover:bg-gray-700/50 text-gray-300
-           px-4 py-2 rounded-lg backdrop-blur-sm transition-all duration-200
-           border border-gray-700/30 hover:border-gray-600/50;
+    @apply bg-gray-800/30 hover:bg-gray-700/40 text-gray-300
+           px-5 py-2.5 rounded-xl backdrop-blur-lg transition-all duration-300
+           border border-gray-700/20 hover:border-gray-600/30
+           hover:shadow-lg hover:shadow-gray-900/20
+           active:scale-[0.98];
 }
 
 .selected-file {
-    @apply bg-blue-900/30;
+    @apply bg-indigo-900/20 border-indigo-500/30 shadow-lg shadow-indigo-500/10;
 }
 
 textarea::placeholder {
     @apply text-gray-600;
 }
 
-/* Cursor styles for resizing */
+/* Improved resize cursors */
 .resize-x {
     cursor: col-resize !important;
     user-select: none;
@@ -124,7 +143,6 @@ textarea::placeholder {
     user-select: none;
 }
 
-/* Cursor styles for vertical resizing */
 .resize-y {
     cursor: row-resize !important;
     user-select: none;
@@ -134,7 +152,41 @@ textarea::placeholder {
     user-select: none;
 }
 
-/* Optional: Add a subtle transition for smooth height changes */
+/* Smooth transitions */
 #instructions-textarea {
-    transition: height 0.1s ease-out;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Custom focus states */
+*:focus-visible {
+    outline: 2px solid rgba(79, 70, 229, 0.5);
+    outline-offset: 2px;
+}
+
+/* Enhanced input styles */
+input[type="text"], textarea {
+    @apply bg-gray-900/30 border border-gray-700/30 rounded-xl px-4 py-2.5
+           focus:border-indigo-500/30 focus:bg-gray-900/40
+           transition-all duration-300;
+}
+
+/* File tree enhancements */
+.file-tree-item {
+    @apply rounded-xl transition-all duration-300
+           hover:bg-gray-800/30 hover:shadow-lg hover:shadow-indigo-500/5;
+}
+
+/* Button hover effects */
+.hover-lift {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-lift:hover {
+    transform: translateY(-2px);
+}
+
+/* Modal enhancements */
+.modal-content {
+    @apply bg-gradient-dark rounded-2xl border border-gray-800/30
+           shadow-2xl shadow-black/50;
 }

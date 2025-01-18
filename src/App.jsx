@@ -6,6 +6,8 @@ import SelectedFiles from './components/SelectedFiles';
 import Toolbar from './components/Toolbar';
 import Titlebar from './components/Titlebar';
 import FilterModal from './components/FilterModal';
+import CommandPalette from './components/CommandPalette';
+import StatusBar from './components/StatusBar';
 import { cache } from './services/cache';
 import { DocumentIcon } from '@heroicons/react/24/outline';
 import { countFileTokens } from './services/tokenizer';
@@ -32,6 +34,8 @@ function App() {
     const isResizing = useRef(false);
     const [activeTemplates, setActiveTemplates] = useState([]);
     const [isChangesModalOpen, setIsChangesModalOpen] = useState(false);
+    const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+    const [lastSaved, setLastSaved] = useState('Never');
 
     // Memoize token calculations for instructions and templates
     const additionalTokens = useMemo(() => {
@@ -374,59 +378,110 @@ function App() {
         return () => clearTimeout(timeoutId);
     }, [sidebarWidth]);
 
+    // Handle command palette actions
+    const handleCommandAction = (commandId) => {
+        switch (commandId) {
+            case 'open-folder':
+                handleFolderSelect();
+                break;
+            case 'manage-filters':
+                handleOpenFilters();
+                break;
+            case 'select-all':
+                handleSelectAll();
+                break;
+            case 'clear-selection':
+                handleUnselectAll();
+                break;
+            case 'toggle-view':
+                setActiveTab(activeTab === 'tree' ? 'list' : 'tree');
+                break;
+            case 'manage-templates':
+                // Add template management logic
+                break;
+            case 'apply-changes':
+                setIsChangesModalOpen(true);
+                break;
+        }
+    };
+
+    // Add keyboard shortcuts
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+                e.preventDefault();
+                setIsCommandPaletteOpen(true);
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
+
     return (
         <div className="h-screen flex flex-col overflow-hidden">
             <Titlebar />
-            <Toolbar
-                onSelectFolder={handleFolderSelect}
-                onOpenFilters={handleOpenFilters}
-                onSelectAll={handleSelectAll}
-                onUnselectAll={handleUnselectAll}
-                activeTab={activeMainTab}
-                onTabChange={setActiveMainTab}
-                onOpenChanges={() => setIsChangesModalOpen(true)}
-            />
 
             <div className="flex-1 flex overflow-hidden">
-                {/* Left sidebar - File tree */}
-                <div
-                    className="border-r border-gray-800 flex flex-col overflow-hidden flex-shrink-0"
-                    style={{ width: sidebarWidth }}
-                >
+                {/* Left sidebar */}
+                <div className="w-[300px] flex flex-col overflow-hidden border-r border-gray-800/50">
+                    <div className="p-3 border-b border-gray-800/50">
+                        <button
+                            onClick={handleFolderSelect}
+                            className="w-full button-primary flex items-center justify-center gap-2"
+                        >
+                            <DocumentIcon className="w-5 h-5" />
+                            <span>Open Folder</span>
+                        </button>
+                    </div>
+
                     <FileTabs activeTab={activeTab} onTabChange={setActiveTab} />
+
                     <div className="flex-1 overflow-y-auto">
                         {renderFileView()}
                     </div>
                 </div>
 
-                {/* Resize handle */}
-                <div
-                    className="w-1 hover:bg-blue-500/50 cursor-col-resize relative group"
-                    onMouseDown={startResizing}
-                >
-                    <div className="absolute inset-y-0 -left-2 right-2 group-hover:bg-blue-500/20" />
-                </div>
-
                 {/* Main content */}
                 <div className="flex-1 flex flex-col overflow-hidden">
-                    <Instructions
-                        value={instructions}
-                        onChange={setInstructions}
+                    <Toolbar
+                        onOpenFilters={handleOpenFilters}
+                        onSelectAll={handleSelectAll}
+                        onUnselectAll={handleUnselectAll}
                         activeTab={activeMainTab}
                         onTabChange={setActiveMainTab}
-                        selectedFile={selectedViewFile}
-                        fileContent={fileContent}
-                        activeTemplates={activeTemplates}
-                        setActiveTemplates={setActiveTemplates}
+                        onOpenChanges={() => setIsChangesModalOpen(true)}
                     />
-                    <div className="flex-1 overflow-y-auto">
-                        <SelectedFiles
-                            files={selectedFiles.filter(f => f.selected)}
-                            additionalTokens={additionalTokens}
+
+                    <div className="flex-1 flex flex-col overflow-hidden">
+                        <Instructions
+                            value={instructions}
+                            onChange={setInstructions}
+                            activeTab={activeMainTab}
+                            onTabChange={setActiveMainTab}
+                            selectedFile={selectedViewFile}
+                            fileContent={fileContent}
+                            activeTemplates={activeTemplates}
+                            setActiveTemplates={setActiveTemplates}
                         />
+                        <div className="flex-1 overflow-y-auto">
+                            <SelectedFiles
+                                files={selectedFiles.filter(f => f.selected)}
+                                additionalTokens={additionalTokens}
+                            />
+                        </div>
                     </div>
                 </div>
             </div>
+
+            <StatusBar
+                stats={{
+                    selectedFiles: selectedFiles.filter(f => f.selected).length,
+                    totalTokens: additionalTokens + selectedFiles.reduce((sum, f) => sum + (f.selected ? (f.tokens || 0) : 0), 0),
+                    lastSaved
+                }}
+                onCommandPalette={() => setIsCommandPaletteOpen(true)}
+            />
 
             <CopyButton
                 selectedFiles={selectedFiles.filter(f => f.selected)}
@@ -444,6 +499,12 @@ function App() {
             <CodeChangesModal
                 isOpen={isChangesModalOpen}
                 onClose={() => setIsChangesModalOpen(false)}
+            />
+
+            <CommandPalette
+                isOpen={isCommandPaletteOpen}
+                onClose={() => setIsCommandPaletteOpen(false)}
+                onAction={handleCommandAction}
             />
         </div>
     );

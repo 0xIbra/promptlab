@@ -299,15 +299,16 @@ function FileTree({ files, currentPath, onFileSelect, onFileView }) {
     return (
         <div className="flex flex-col h-full">
             <div className="p-2">
-                <div className="relative">
-                    <MagnifyingGlassIcon className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <div className="relative flex items-center">
+                    <MagnifyingGlassIcon className="w-4 h-4 absolute left-3 text-gray-400 pointer-events-none" />
                     <input
                         type="text"
                         placeholder="Search files..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-9 pr-3 py-2 bg-gray-900/50 rounded-lg border border-gray-700/50
-                            text-sm focus:outline-none focus:border-blue-500/50 transition-colors duration-200"
+                        style={{ paddingLeft: "2.5rem" }}
+                        className="w-full px-4 py-2.5 bg-gray-900/50 rounded-lg border border-gray-700/50
+                            text-sm focus:outline-none focus:border-indigo-500/50 transition-colors duration-200"
                     />
                 </div>
             </div>
